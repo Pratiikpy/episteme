@@ -1,0 +1,206 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Episteme &mdash; proof</title>
+<meta name="description" content="Knowledge that is justified, not merely asserted. Agent #9165 on OKX.AI &mdash; 3/3 paid calls delivered, every settlement confirmed on X Layer.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+:root{--ink:#0A0A0A;--stone:#1D1D1F;--graphite:#6B7280;--fog:#9CA3AF;--line:#E5E7EB;
+--veil:#F8FAFC;--halo:#FAFAF7;--paper:#FFFFFF;--accent:#1D4ED8;
+--sans:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+--mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+*{box-sizing:border-box;border:0 solid var(--line)}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.55 var(--sans);
+-webkit-font-smoothing:antialiased}
+.page{max-width:1200px;margin:0 auto;padding:4.5rem 2rem 2rem}
+.hero{padding-bottom:4rem}
+.topline{display:flex;justify-content:space-between;gap:1rem;font:500 .72rem/1 var(--mono);
+letter-spacing:.14em;text-transform:uppercase;color:var(--graphite);margin-bottom:3.5rem}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:.5rem}
+.kicker{font:600 .72rem/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+color:var(--graphite);margin:0 0 1.25rem}
+h1{margin:0 0 1.25rem;font-size:clamp(2.4rem,6vw,5.2rem);line-height:.94;letter-spacing:-.045em;font-weight:700}
+h1 em{font-style:normal;color:var(--accent)}
+.hero-copy{max-width:640px;color:var(--graphite);font-size:1.125rem;line-height:1.6;margin:0}
+section{display:grid;grid-template-columns:190px minmax(0,1fr);gap:3.25rem;padding:5rem 0;
+border-bottom:1px solid var(--line)}
+.meta{font:500 .72rem/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--graphite);padding-top:.7rem}
+.body{min-width:0}
+h2{margin:0 0 1rem;font-size:clamp(1.8rem,3.4vw,3.2rem);line-height:.98;letter-spacing:-.04em;
+font-weight:700;max-width:820px}
+.body>p{margin:0 0 2rem;color:var(--graphite);max-width:720px;font-size:1.0625rem}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:1rem}
+.grid .card{padding:1.4rem 1.5rem}
+.grid h3{margin:0 0 .5rem;font-size:1.0625rem;font-weight:600;letter-spacing:-.01em}
+.grid p{margin:0;color:var(--graphite);font-size:.9375rem;line-height:1.55}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem}
+.stats .card{padding:1.3rem 1.4rem}
+.stats dt{font:500 .66rem/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+color:var(--graphite);margin-bottom:.65rem}
+.stats dd{margin:0;font-size:2rem;font-weight:600;letter-spacing:-.03em;line-height:1}
+.stats dd b{color:var(--accent);font-weight:600}
+.stats small{display:block;margin-top:.6rem;color:var(--fog);font-size:.8125rem;line-height:1.5}
+.outcome{margin-bottom:1rem;overflow:hidden}
+.outcome header{display:flex;flex-wrap:wrap;align-items:baseline;gap:.75rem;
+padding:1rem 1.4rem;border-bottom:1px solid var(--line);background:var(--halo)}
+.outcome .ep{font:600 .8125rem/1 var(--mono);color:var(--accent)}
+.outcome .ask{color:var(--graphite);font-size:.875rem}
+.outcome .verified{margin-left:auto;font:600 .66rem/1 var(--mono);letter-spacing:.12em;
+text-transform:uppercase;color:var(--accent)}
+.outcome .req{padding:1rem 1.4rem;border-bottom:1px solid var(--line);background:var(--veil)}
+.outcome .req span{display:block;font:500 .66rem/1 var(--mono);letter-spacing:.13em;
+text-transform:uppercase;color:var(--fog);margin-bottom:.5rem}
+.outcome .req code{font:400 .8125rem/1.55 var(--mono);color:var(--stone);word-break:break-word}
+.outcome dl{margin:0;padding:1.1rem 1.4rem}
+.outcome dt{font:500 .66rem/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+color:var(--fog);margin-bottom:.4rem}
+.outcome dd{margin:0 0 1rem;font-size:.9375rem;line-height:1.6;color:var(--stone);word-break:break-word}
+.outcome dd:last-child{margin-bottom:0}
+.outcome dd.mono{font:400 .8125rem/1.6 var(--mono)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:.875rem;border:1px solid var(--line);
+border-radius:14px;overflow:hidden}
+th{text-align:left;background:var(--halo);color:var(--graphite);font:600 .66rem/1 var(--mono);
+letter-spacing:.13em;text-transform:uppercase;padding:.85rem 1rem}
+td{padding:.8rem 1rem;border-top:1px solid var(--line);vertical-align:top}
+td.m{font:500 .8125rem/1.4 var(--mono);color:var(--accent);white-space:nowrap}
+td.p{font:500 .8125rem/1.4 var(--mono);text-align:right;white-space:nowrap;color:var(--stone)}
+td.tx{font:400 .75rem/1.4 var(--mono)}
+td.tx a{color:var(--graphite)}
+.ok{color:var(--accent);font-weight:600;font-size:.8125rem}
+.sub{display:block;color:var(--fog);font-size:.8125rem;margin-top:.15rem}
+pre{margin:0;padding:1.1rem 1.3rem;background:var(--ink);color:#E8EDF7;border-radius:14px;
+overflow-x:auto;font:400 .8125rem/1.7 var(--mono)}
+pre .c{color:var(--fog)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0 0 2.5rem}
+.steps li{counter-increment:s;position:relative;padding:0 0 1.15rem 2.6rem;color:var(--graphite);
+font-size:1rem;line-height:1.62;max-width:760px}
+.steps li::before{content:counter(s);position:absolute;left:0;top:.1rem;width:1.45rem;height:1.45rem;
+border-radius:50%;border:1px solid var(--line);background:var(--halo);color:var(--accent);
+font:600 .7rem/1.45rem var(--mono);text-align:center}
+.steps b{color:var(--ink);font-weight:600}
+.sub-h{margin:0 0 .6rem;font-size:.72rem;font-family:var(--mono);letter-spacing:.14em;
+text-transform:uppercase;color:var(--graphite);font-weight:500}
+.arch{color:var(--graphite);max-width:760px;font-size:1rem;line-height:1.62;margin:0}
+.sibs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+.sibs .sib{display:block;border:1px solid var(--line);border-radius:14px;padding:1.3rem 1.5rem;
+text-decoration:none;background:var(--paper)}
+.sibs .sib b{display:block;color:var(--ink);font-size:1.0625rem;font-weight:600;margin-bottom:.35rem}
+.sibs .sib span{color:var(--graphite);font-size:.9375rem;line-height:1.5}
+.limits{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 14px 14px 0;
+padding:1.4rem 1.6rem;background:var(--halo)}
+.limits ul{margin:0;padding-left:1.15rem;color:var(--graphite)}
+.limits li{margin-bottom:.6rem;font-size:.9375rem;line-height:1.6}
+.limits li:last-child{margin-bottom:0}
+footer{padding:3rem 0;color:var(--fog);font-size:.875rem;line-height:1.7}
+a{color:var(--accent)}
+@media(max-width:900px){section{grid-template-columns:1fr;gap:1.25rem;padding:3.5rem 0}
+.meta{padding-top:0}.page{padding:3rem 1.25rem 1.5rem}}
+</style></head><body><div class="page">
+
+<header class="hero">
+<div class="topline"><span><span class="dot"></span>Proof &middot; Agent #9165</span>
+<span>OKX.AI &middot; X Layer 196</span></div>
+<p class="kicker">Episteme / Listed on OKX.AI</p>
+<h1>The result,<br><em>and the evidence that it is correct.</em></h1>
+<p class="hero-copy">Forty-eight deterministic services that return the deliverable and the proof it was produced correctly: the named checks that ran, how far it was verified, and an Ed25519 signature over the whole artifact. A receipt verifies offline, without asking us anything.</p>
+</header>
+
+<section><div class="meta">01 / The problem</div><div class="body">
+<h2>The small jobs are where an agent goes quietly wrong.</h2>
+<p>An agent doing real work spends most of its time on unglamorous tasks: parse this document, profile this CSV, scan this repository for secrets, redact the personal data before it reaches a model. Each is small, and each is a place to be quietly wrong. A parser drops a column. A cleaner reports it lower-cased your strings and did not. The agent does not notice &mdash; it takes the output and builds on it, and by the time anything looks wrong the error is three steps upstream and invisible. There is no shortage of tools for these jobs. What is missing is any way for the caller to know the job was actually done.</p>
+</div></section>
+
+<section><div class="meta">02 / Verified</div><div class="body">
+<h2>Bought and paid for, not claimed.</h2>
+<p>Every figure below comes from a run where a registered OKX user agent paid real invoices and kept
+what came back. Nothing on this page is typed in by hand.</p>
+<div class="stats">
+<div class="card"><dt>Paid calls delivered</dt><dd><b>3</b>/3</dd>
+<small>each returned an actual deliverable, not a 200-shaped shrug</small></div>
+<div class="card"><dt>Settled on chain</dt><dd><b>3</b>/3</dd>
+<small>transaction receipt confirmed on X Layer, not a response header</small></div>
+<div class="card"><dt>Unpaid call</dt><dd>402</dd>
+<small>spec-correct PAYMENT-REQUIRED challenge on every paid route</small></div>
+<div class="card"><dt>Price</dt><dd>$0.001&ndash;$0.2</dd>
+<small>USD&#8366;0 per call &middot; 48 services + 1 A2A</small></div>
+</div></div></section>
+
+<section><div class="meta">03 / Outcomes</div><div class="body">
+<h2>What it actually returns.</h2>
+<p>Real responses from that paid run &mdash; trimmed to fit, never edited. This is the product, not a
+description of it.</p>
+<div class='card outcome'><header><span class='ep'>csv.profile</span><span class='ask'>Profile a dataset — types, nulls, quality alerts.</span><span class='verified'>&#10003; paid &amp; settled</span></header><div class='req'><span>Request sent</span><code>{&quot;input&quot;: {&quot;csv&quot;: &quot;id,amount,region\n1,1284500.50,EMEA\n2,4300.00,APAC\n3,0.000015,EMEA&quot;}}</code></div><dl><dt>Result</dt><dd class='mono'>{&quot;rows&quot;: 3, &quot;cols&quot;: 3, &quot;columns&quot;: [&quot;id&quot;, &quot;amount&quot;, &quot;region&quot;], &quot;dtypes&quot;: {&quot;id&quot;: &quot;Int64&quot;, &quot;amount&quot;: &quot;Float64&quot;, &quot;region&quot;: &quot;String&quot;}, &quot;null_counts&quot;: {&quot;id&quot;: 0, &quot;amount&quot;: 0, &quot;region&quot;: 0}, &quot;numeric_summary&quot;: {&quot;id&quot;: {&quot;min&quot;: 1.0, &quot;max&quot;: 3.0, &quot;mean&quot;: 2.0, &quot;null&quot;: 0}, &quot;amount&quot;: {&quot;min&quot;: 1.5e-05, &quot;max&quot;: 1284500.5, &quot;mean&quot;: 429600.166672, &quot;null&quot;: 0}}, &quot;alerts&quot;: [], &quot;verify_key&quot;: {&quot;rows&quot;: 3, &quot;cols&quot;: 3}}</dd><dt>Validation</dt><dd class=''>level L4_INDEPENDENTLY_VERIFIED · 3/3 checks passed</dd><dt>Receipt</dt><dd class='mono'>74ee93bbed97eb478332992644c94c27b135f126b9c07e7518c86a1d4745149c…</dd></dl></div><div class='card outcome'><header><span class='ep'>repo.scan_secrets</span><span class='ask'>Find credentials committed to a repository.</span><span class='verified'>&#10003; paid &amp; settled</span></header><div class='req'><span>Request sent</span><code>{&quot;input&quot;: {&quot;files&quot;: {&quot;app.py&quot;: &quot;KEY = \&quot;sk-proj-abc123XYZ_deadbeef-cafe0987654321zzTT\&quot;\n&quot;}}}</code></div><dl><dt>Result</dt><dd class='mono'>{&quot;file_count&quot;: 1, &quot;secret_count&quot;: 1, &quot;findings&quot;: [{&quot;path&quot;: &quot;app.py&quot;, &quot;line&quot;: 1, &quot;rule&quot;: &quot;openai-project-key&quot;, &quot;redacted&quot;: &quot;sk-p…zzTT&quot;, &quot;confidence&quot;: &quot;high&quot;, &quot;entropy_bits_per_char&quot;: 4.7}], &quot;has_secrets&quot;: true, &quot;findings_by_rule&quot;: {&quot;openai-project-key&quot;: 1}, &quot;high_confidence_count&quot;: 1, &quot;rules_applied&quot;: 30, &quot;placeholders_ignored&quot;: 0, &quot;truncated&quot;: false}</dd><dt>Validation</dt><dd class=''>level L3_REPRODUCED · 3/3 checks passed</dd></dl></div>
+</div></section>
+
+<section><div class="meta">04 / Difference</div><div class="body">
+<h2>Knowledge that is justified, not merely asserted.</h2>
+<p>Three things this does that a similar-sounding service does not.</p>
+<div class="grid"><div class='card'><h3>Every result states how far it was checked</h3><p>The validation level sits in the response and inside the signed manifest, so a caller can require a minimum before acting on it.</p></div><div class='card'><h3>Checks assert the work, not its shape</h3><p>A check that only confirmed a key existed once let a no-op earn a signature. That class of bug is now structurally impossible.</p></div><div class='card'><h3>Provenance is real</h3><p>The replay capsule reports the interpreter and the installed library versions that actually ran, because that statement sits inside the signed manifest.</p></div></div>
+</div></section>
+
+<section><div class="meta">05 / How it works</div><div class="body">
+<h2>The mechanism, in order.</h2>
+<p>What actually happens between your request and the signed answer.</p>
+<ol class="steps"><li><b>One envelope for all 48</b> &mdash; Every service returns the same shape: <code>result</code>, the named checks that ran, content-addressed input and output digests, a replay capsule, and an Ed25519 receipt. An agent writes one verification routine and it works for every tool.</li><li><b>A level, not a rating</b> &mdash; <code>L1_PRODUCED</code> produced a result. <code>L2</code> validated it against the declared schema. <code>L3_REPRODUCED</code> re-ran the same input and got the same digest. <code>L4_INDEPENDENTLY_VERIFIED</code> ran a second independent engine and got an agreeing result.</li><li><b>Checks assert the work</b> &mdash; Not its shape. Ask for lower-case and the check fails unless every returned string really is lower-case. An unrecognised operation is a hard error, because signing &ldquo;I did what you asked&rdquo; is only defensible if unknown instructions fail loudly.</li><li><b>Sign the manifest</b> &mdash; Ed25519 over the canonical manifest, with the public key published at <code>/.well-known/episteme-signing-key</code>. Compare the key, verify the signature, and the receipt stands on its own.</li></ol>
+<h3 class="sub-h">How it is built</h3>
+<p class="arch">A Node gateway running OKX's official x402 seller SDK sits in front of a Python runtime. The gateway verifies and settles payment, then hands off over a constant-time internal secret &mdash; so a paid call is never challenged a second time, which is the failure that gets ASPs rejected. The runtime executes the node, runs its checks, attempts reproduction and differential verification, builds the replay capsule and signs the receipt. AI-backed services are flagged in their schema and capped below the deterministic tiers.</p>
+</div></section>
+
+<section><div class="meta">06 / Who pays</div><div class="body">
+<h2>Why anyone buys this.</h2>
+<p>Agent builders who need a job done right and do not want to own the code. At $0.001&ndash;$0.20 a call, writing and maintaining your own parser is the expensive option. The receipt is what makes these worth buying rather than copying: in a pipeline where several agents hand work to each other, &ldquo;prove the step you are passing me actually ran&rdquo; is the missing primitive.</p>
+</div></section>
+
+<section><div class="meta">07 / Evidence</div><div class="body">
+<h2>Every call, with its receipt.</h2>
+<p>Paid from OKX user agent <code>#8515</code>. Open any hash and
+check the settlement yourself.</p>
+<div class="scroll"><table>
+<tr><th>Service</th><th>Result</th><th>What came back</th><th>Settlement</th></tr>
+<tr><td class='m'>csv.profile</td><td><span class='ok'>PASS</span></td><td>result + 3 checks passed, level=L4_INDEPENDENTLY_VERIFIED, signed=True</td><td class='tx'><a href="https://www.oklink.com/x-layer/tx/0x09c74234af1aaf32b7e438e1efa5f1e13b89d0c08ff276e49696ddc5340c246a">0x09c74234&hellip;0c246a</a></td></tr><tr><td class='m'>repo.scan_secrets</td><td><span class='ok'>PASS</span></td><td>result + 3 checks passed, level=L3_REPRODUCED, signed=True</td><td class='tx'><a href="https://www.oklink.com/x-layer/tx/0x2f13f0d31ebc12148e58716d827c70017a74dfc6bb98a8631b35f38d8c00bd5a">0x2f13f0d3&hellip;00bd5a</a></td></tr><tr><td class='m'>image.transform</td><td><span class='ok'>PASS</span></td><td>result + 2 checks passed, level=L3_REPRODUCED, signed=True</td><td class='tx'><a href="https://www.oklink.com/x-layer/tx/0x7114b89391d313fdef1bd30f23745f65042ef91a4f5d6071528f05451f51be18">0x7114b893&hellip;51be18</a></td></tr>
+</table></div>
+</div></section>
+
+<section><div class="meta">08 / Services</div><div class="body">
+<h2>The catalogue.</h2>
+<p>Prices are the ones the paywall charges &mdash; read from the live listing, so the two cannot drift.</p>
+<div class="scroll"><table>
+<tr><th>Endpoint</th><th>Service</th><th style="text-align:right">Price</th></tr>
+<tr><td class='m'>api.to_mcp</td><td>OpenAPI to MCP<span class='sub'>Generates typed MCP tool definitions from an OpenAPI specification.</span></td><td class='p'>$0.02</td></tr><tr><td class='m'>artifact.verify</td><td>Artifact Hash Verify<span class='sub'>Verifies content against an expected hash and returns a match verdict.</span></td><td class='p'>$0.001</td></tr><tr><td class='m'>chart.spec</td><td>Chart Spec Builder<span class='sub'>Builds a valid Vega-Lite chart specification from tabular data and field mappings.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>csv.profile</td><td>CSV Data Profile<span class='sub'>Profiles a CSV dataset with types, null counts, statistics and quality alerts.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>csv.to_table</td><td>CSV to Table<span class='sub'>Renders a CSV dataset as a clean Markdown or grid table for reports and agents.</span></td><td class='p'>$0.005</td></tr><tr><td class='m'>data.clean</td><td>Data Clean<span class='sub'>Trims, collapses whitespace, lowercases and drops empty fields with a change log.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>data.convert</td><td>Tabular Data Convert<span class='sub'>Converts tabular data between CSV, JSON and JSONL formats deterministically.</span></td><td class='p'>$0.005</td></tr><tr><td class='m'>data.dedupe</td><td>Row Deduplication<span class='sub'>Finds and removes duplicate rows by key or full match and returns duplicate clusters.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>data.diff</td><td>Dataset Difference<span class='sub'>Compares two CSV datasets and reports added, removed and schema changes.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>data.join</td><td>Dataset Join<span class='sub'>Joins two record sets on a shared key with inner or left semantics.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>data.pivot</td><td>Data Pivot Aggregate<span class='sub'>Groups rows by fields and aggregates with count, sum, average, min and max.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>data.query_sql</td><td>CSV SQL Query<span class='sub'>Runs a read-only SQL query over a CSV dataset and returns rows.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>data.stats</td><td>Numeric Data Stats<span class='sub'>Computes count, min, max, mean, standard deviation and median per numeric column.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>data.transform_json</td><td>JSON Transform<span class='sub'>Applies deterministic transforms such as pick, select, flatten and keys to JSON data.</span></td><td class='p'>$0.005</td></tr><tr><td class='m'>data.validate</td><td>Data Schema Validate<span class='sub'>Validates rows against a JSON Schema and returns per-row errors and a pass rate.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>document.chunk</td><td>Document Chunker<span class='sub'>Splits a document into overlapping, retrieval-ready chunks for grounded question answering.</span></td><td class='p'>$0.005</td></tr><tr><td class='m'>document.compare</td><td>Document Compare<span class='sub'>Produces a redline and change statistics between two document texts.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>document.extract_json</td><td>Document to JSON<span class='sub'>Extracts caller-defined structured fields from a document as validated JSON.</span></td><td class='p'>$0.05</td></tr><tr><td class='m'>document.redact_pii</td><td>PII Redaction<span class='sub'>Detects and redacts emails, phones, SSNs, cards and IPs from text for safe agent use.</span></td><td class='p'>$0.02</td></tr><tr><td class='m'>document.to_markdown</td><td>Document to Markdown<span class='sub'>Converts PDF or text documents into clean markdown for downstream agents.</span></td><td class='p'>$0.02</td></tr><tr><td class='m'>email.validate</td><td>Email Validate<span class='sub'>Checks email syntax, disposable and role addresses and gives a deliverability guess.</span></td><td class='p'>$0.005</td></tr><tr><td class='m'>file.inspect</td><td>File Inspect and Hash<span class='sub'>Detects file type, size and content hashes for any agent handling untrusted files.</span></td><td class='p'>$0.001</td></tr><tr><td class='m'>hash.compute</td><td>Content Hash Compute<span class='sub'>Computes cryptographic digests of content for integrity and deduplication.</span></td><td class='p'>$0.001</td></tr><tr><td class='m'>image.inspect</td><td>Image Inspect<span class='sub'>Reports image format, dimensions, mode and EXIF metadata with a content hash.</span></td><td class='p'>$0.002</td></tr><tr><td class='m'>image.transform</td><td>Image Transform<span class='sub'>Resizes, converts, rotates or grayscales an image and returns a hashed artifact.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>mcp.validate</td><td>MCP Tools Validate<span class='sub'>Validates an MCP tools list for names, descriptions and input schemas.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>object.diff</td><td>JSON Object Diff<span class='sub'>Computes added, removed and changed paths between two JSON values.</span></td><td class='p'>$0.005</td></tr><tr><td class='m'>openapi.diff</td><td>OpenAPI Diff<span class='sub'>Compares two OpenAPI specs and flags added, removed and breaking operations.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>openapi.inspect</td><td>OpenAPI Spec Inspect<span class='sub'>Inventories operations, paths and security schemes from an OpenAPI specification.</span></td><td class='p'>$0.002</td></tr><tr><td class='m'>openapi.lint</td><td>OpenAPI Lint<span class='sub'>Lints an OpenAPI specification for missing titles, operation ids, responses and descriptions.</span></td><td class='p'>$0.005</td></tr><tr><td class='m'>page.extract</td><td>Web Page Extract<span class='sub'>Extracts structured fields from a web page using caller CSS selectors.</span></td><td class='p'>$0.02</td></tr><tr><td class='m'>page.links</td><td>Web Page Links<span class='sub'>Extracts and resolves all hyperlinks and anchor text from a web page.</span></td><td class='p'>$0.005</td></tr><tr><td class='m'>pdf.manipulate</td><td>PDF Manipulate<span class='sub'>Reads PDF info or extracts, rotates and strips metadata from pages into a new document.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>receipt.verify</td><td>Receipt Verify<span class='sub'>Independently verifies an Episteme signed receipt and its manifest for tamper detection.</span></td><td class='p'>$0.001</td></tr><tr><td class='m'>repo.lint</td><td>Repository Lint<span class='sub'>Checks source files for syntax errors, long lines, tabs and unresolved markers.</span></td><td class='p'>$0.02</td></tr><tr><td class='m'>repo.map</td><td>Repository Map<span class='sub'>Maps a codebase into languages, lines of code, symbols and dependencies for agents.</span></td><td class='p'>$0.02</td></tr><tr><td class='m'>repo.scan_secrets</td><td>Secret Scanner<span class='sub'>Scans code and text for leaked keys and tokens and returns redacted findings only.</span></td><td class='p'>$0.02</td></tr><tr><td class='m'>robots.check</td><td>Robots Policy Check<span class='sub'>Parses a robots.txt and decides whether a path is crawlable for a user agent.</span></td><td class='p'>$0.005</td></tr><tr><td class='m'>schema.generate</td><td>JSON Schema Generate<span class='sub'>Infers a JSON Schema from an example JSON value for validation and contracts.</span></td><td class='p'>$0.005</td></tr><tr><td class='m'>sim.run</td><td>Scenario Foresight Sim<span class='sub'>Runs a synthetic multi-agent scenario simulation with optional counterfactual divergence.</span></td><td class='p'>$0.2</td></tr><tr><td class='m'>site.map</td><td>Sitemap Extract<span class='sub'>Extracts and de-duplicates URLs from a sitemap or web page for crawl planning.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>text.diff</td><td>Text Difference Report<span class='sub'>Produces a unified diff and similarity score between two texts.</span></td><td class='p'>$0.001</td></tr><tr><td class='m'>text.stats</td><td>Text Statistics<span class='sub'>Counts characters, words, sentences and lines and estimates reading time.</span></td><td class='p'>$0.001</td></tr><tr><td class='m'>text.summarize</td><td>Text Summarize<span class='sub'>Summarizes long text into a concise summary for downstream agents.</span></td><td class='p'>$0.03</td></tr><tr><td class='m'>unit.convert</td><td>Unit Conversion<span class='sub'>Converts length, mass, time, data and temperature units deterministically.</span></td><td class='p'>$0.002</td></tr><tr><td class='m'>url.inspect</td><td>URL Reachability Check<span class='sub'>Resolves a link and reports its final address, response code, content type, size and redirect count, without</span></td><td class='p'>$0.001</td></tr><tr><td class='m'>url.to_markdown</td><td>Web Page to Markdown<span class='sub'>Extracts the main content of a web page as clean markdown for agents.</span></td><td class='p'>$0.01</td></tr><tr><td class='m'>workflow.compose</td><td>Verified Workflow Compose<span class='sub'>Chains multiple verified nodes into one artifact graph with per node signed receipts.</span></td><td class='p'>$0.05</td></tr>
+</table></div>
+</div></section>
+
+<section><div class="meta">09 / Call it</div><div class="body">
+<h2>Two requests, start to finish.</h2>
+<p>Send an empty body to any paid endpoint and it returns that endpoint's input contract instead of an
+error, so the shape is discoverable before you pay.</p>
+<pre>curl -X POST https://episteme.blacksky-e393132e.centralindia.azurecontainerapps.io/a2mcp/file.inspect \
+  -H 'Content-Type: application/json' -d '{}'
+<span class="c"># 402 + PAYMENT-REQUIRED challenge</span>
+
+curl -X POST https://episteme.blacksky-e393132e.centralindia.azurecontainerapps.io/a2mcp/file.inspect \
+  -H 'PAYMENT-SIGNATURE: &lt;signed EIP-3009 authorization&gt;' \
+  -H 'Content-Type: application/json' -d '{ &hellip; }'
+<span class="c"># 200 + the deliverable. Settles on X Layer in the same call.</span></pre>
+<p style="margin-top:1.25rem">Live service: <a href="https://episteme.blacksky-e393132e.centralindia.azurecontainerapps.io">https://episteme.blacksky-e393132e.centralindia.azurecontainerapps.io</a></p>
+</div></section>
+
+<section><div class="meta">10 / Limits</div><div class="body">
+<h2>What this does not do.</h2>
+<p>Printed here rather than buried.</p>
+<div class="limits"><ul><li>Listed on OKX.AI as agent #9165 on 26 July 2026. Listed means OKX checked the service works; it says nothing about whether anyone wants it.</li><li>Zero sales. The marketplace is days old with near-zero volume across every ASP.</li><li>AI-backed services cannot reach the reproducible tiers, and are marked as such in their schema.</li><li>Produced artifacts are retained for a bounded period; the digest inside the receipt is the durable part.</li></ul></div>
+</div></section>
+
+<section style="border-bottom:0"><div class="meta">11 / The others</div><div class="body">
+<h2>This is one of three.</h2>
+<p>Same idea at three layers of the stack: deterministic work with a receipt, research proved by its
+sources, and a judgement that shows its evidence.</p>
+<div class="sibs"><a class='sib' href='https://api.ivaronix.xyz/proof'><b>Aletheia</b><span>is this token, wallet or transaction safe</span></a><a class='sib' href='https://reach.ivaronix.xyz/proof'><b>Reach</b><span>research with sources you can check</span></a></div>
+<p style="margin-top:1.5rem">The long-form product thinking &mdash; problem, design decisions and how the
+three fit together &mdash; is <a href="https://app.notion.com/p/3a99c0ce78768104958be46465e840dd">written up here</a>.</p>
+</div></section>
+
+<footer>Episteme &middot; Agent #9165 &middot; OKX.AI Genesis Hackathon.<br>
+Generated from the live marketplace listing and a recorded paid run.</footer>
+</div></body></html>

@@ -119,3 +119,60 @@ def test_deterministic_node_has_stable_column_order(registry):
     for _ in range(5):
         assert node.run(_ctx("data.stats", {"rows": rows}))["numeric_columns"] == first
     assert first == ["b", "a", "c"], "column order must follow first appearance in the input"
+
+
+# ---- image.transform: a dropped dimension must never be signed as success ----------------------
+# Found by paying for the service and reading the response: {content_b64, width: 200} returned the
+# image UNCHANGED at its original size with op="convert", because `op` was declared required in the
+# schema but defaulted to "convert" in code. The requested width was discarded silently and the
+# result was signed. Separately, a width-only resize defaulted the missing height to the input's own
+# height, stretching the picture while reporting success.
+
+def _png(w: int, h: int) -> str:
+    import base64
+    import io
+    from PIL import Image
+    b = io.BytesIO()
+    Image.new("RGB", (w, h), (20, 80, 160)).save(b, "PNG")
+    return base64.b64encode(b.getvalue()).decode()
+
+
+def _img(registry, **inp):
+    """Run image.transform through the node directly, returning (result, checks_by_name)."""
+    node = registry.get("image.transform")
+    ctx = _ctx("image.transform", inp)
+    result = node.run(ctx)
+    return result, {c.name: c.passed for c in node.validate(result, ctx)}
+
+
+def test_image_transform_requires_op(registry):
+    """Omitting `op` must fail loudly — the schema declares it required, so defaulting it silently
+    discarded the caller's width and signed an unchanged image as a success."""
+    with pytest.raises(NodeError) as e:
+        _img(registry, content_b64=_png(400, 100), width=200)
+    assert "op is required" in str(e.value)
+
+
+def test_image_transform_width_only_preserves_aspect(registry):
+    result, checks = _img(registry, content_b64=_png(400, 100), op="resize", width=200)
+    assert (result["out_width"], result["out_height"]) == (200, 50),         f"stretched instead of scaled: {result['out_width']}x{result['out_height']}"
+    assert checks.get("resized_to_requested_width") is True
+    assert checks.get("aspect_ratio_preserved") is True
+
+
+def test_image_transform_height_only_preserves_aspect(registry):
+    result, _ = _img(registry, content_b64=_png(400, 100), op="resize", height=25)
+    assert (result["out_width"], result["out_height"]) == (100, 25)
+
+
+def test_image_transform_resize_needs_a_dimension(registry):
+    with pytest.raises(NodeError) as e:
+        _img(registry, content_b64=_png(400, 100), op="resize")
+    assert "width and/or height" in str(e.value)
+
+
+def test_image_transform_explicit_box_is_honoured(registry):
+    """An explicit width AND height may distort — the caller asked for exactly that."""
+    result, checks = _img(registry, content_b64=_png(400, 100), op="resize", width=300, height=300)
+    assert (result["out_width"], result["out_height"]) == (300, 300)
+    assert checks.get("resized_to_requested_box") is True

@@ -86,14 +86,32 @@ class ImageTransformNode(Node):
         except Exception as e:
             raise NodeError(ErrorCode.UNSUPPORTED_FORMAT, f"not an image: {e}")
         in_w, in_h = im.width, im.height
-        op = str(ctx.input.get("op", "convert"))
+        # `op` is declared REQUIRED in the schema, so defaulting it here was a silent lie: a caller
+        # who sent {content_b64, width: 200} got a plain format-convert, their width was dropped
+        # without a word, and the unchanged image was signed as a success. Same family as the
+        # data.clean bug — asked for one thing, quietly did another, then attested to it.
+        if "op" not in ctx.input or not str(ctx.input.get("op") or "").strip():
+            raise NodeError(ErrorCode.INVALID_INPUT,
+                            "op is required — one of resize, thumbnail, convert, grayscale, rotate")
+        op = str(ctx.input["op"]).strip().lower()
         out_fmt = str(ctx.input.get("format", "PNG")).upper()
         if out_fmt not in {"PNG", "JPEG", "WEBP", "GIF", "BMP"}:
             raise NodeError(ErrorCode.INVALID_INPUT, f"unsupported output format {out_fmt}")
 
         if op in ("resize", "thumbnail"):
-            w = int(ctx.input.get("width", in_w))
-            h = int(ctx.input.get("height", in_h))
+            req_w, req_h = ctx.input.get("width"), ctx.input.get("height")
+            if req_w is None and req_h is None:
+                raise NodeError(ErrorCode.INVALID_INPUT, f"{op} needs width and/or height")
+            # Width-only (or height-only) must SCALE, not stretch. Defaulting the missing side to the
+            # input's own dimension silently distorted the picture while reporting success.
+            if req_w is not None and req_h is None:
+                w = int(req_w)
+                h = max(1, round(in_h * (w / in_w)))
+            elif req_h is not None and req_w is None:
+                h = int(req_h)
+                w = max(1, round(in_w * (h / in_h)))
+            else:
+                w, h = int(req_w), int(req_h)
             if w <= 0 or h <= 0 or w > 20000 or h > 20000:
                 raise NodeError(ErrorCode.INVALID_INPUT, "bad target dimensions")
             if op == "thumbnail":
@@ -128,7 +146,35 @@ class ImageTransformNode(Node):
         }
 
     def validate(self, result: dict, ctx: NodeContext) -> list[ValidationCheck]:
-        return [
+        checks = [
             ValidationCheck(name="produced_output", passed=result.get("out_bytes", 0) > 0),
             ValidationCheck(name="has_out_hash", passed=len(result.get("out_sha256", "")) == 64),
         ]
+        # Assert the work, not its shape: if a size was requested, the output must actually be that
+        # size, and a single-axis request must have preserved the aspect ratio rather than stretched.
+        op = str(ctx.input.get("op") or "").strip().lower()
+        if op == "resize":
+            rw, rh = ctx.input.get("width"), ctx.input.get("height")
+            ow, oh = result.get("out_width"), result.get("out_height")
+            iw, ih = result.get("in_width"), result.get("in_height")
+            if rw is not None and rh is None:
+                checks.append(ValidationCheck(
+                    name="resized_to_requested_width", passed=ow == int(rw),
+                    detail=f"asked {rw}px wide, produced {ow}px"))
+                expect_h = max(1, round(ih * (int(rw) / iw))) if iw else None
+                checks.append(ValidationCheck(
+                    name="aspect_ratio_preserved", passed=oh == expect_h,
+                    detail=f"{iw}x{ih} -> {ow}x{oh}, expected height {expect_h}"))
+            elif rh is not None and rw is None:
+                checks.append(ValidationCheck(
+                    name="resized_to_requested_height", passed=oh == int(rh),
+                    detail=f"asked {rh}px tall, produced {oh}px"))
+                expect_w = max(1, round(iw * (int(rh) / ih))) if ih else None
+                checks.append(ValidationCheck(
+                    name="aspect_ratio_preserved", passed=ow == expect_w,
+                    detail=f"{iw}x{ih} -> {ow}x{oh}, expected width {expect_w}"))
+            elif rw is not None and rh is not None:
+                checks.append(ValidationCheck(
+                    name="resized_to_requested_box", passed=(ow == int(rw) and oh == int(rh)),
+                    detail=f"asked {rw}x{rh}, produced {ow}x{oh}"))
+        return checks

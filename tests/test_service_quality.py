@@ -375,6 +375,12 @@ def test_receipt_verify_rejects_a_forgery_signed_with_another_key(runtime):
     attacker = Ed25519PrivateKey.generate()
     forged = json.loads(json.dumps(genuine))
     forged["result"] = {"sha256": "0" * 64}
+    # A competent forger recomputes the digest of what they substituted. The earlier version of this
+    # fixture did not, which made it a *content* forgery rather than an identity one — and once
+    # receipt.verify started re-hashing the result, it was caught on those grounds and never reached
+    # the attribution check this test exists to exercise. Recomputing here leaves exactly one thing
+    # wrong with the envelope: who signed it.
+    forged["output_hash"] = sha256_hex(forged["result"])
     manifest = sha256_hex({
         "endpoint": forged["endpoint"], "input_hashes": forged["input_hashes"],
         "output_hash": forged["output_hash"], "tool": forged["tool"],

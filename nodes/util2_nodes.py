@@ -157,6 +157,22 @@ class ReceiptVerifyNode(Node):
         }
         recomputed = sha256_hex(manifest)
         manifest_matches = (recomputed == receipt.get("manifest_sha256"))
+
+        # The manifest commits to `output_hash`, not to the result itself — so a signature that
+        # verifies proves only that *some* output with that digest was produced, never that the
+        # result sitting in this envelope is that output. Without recomputing the digest, editing
+        # `result` and leaving `output_hash` alone passed every check and returned VALID: a tampered
+        # deliverable, cryptographically blessed. This is the one comparison the whole service exists
+        # to make, and it was the one it did not do.
+        #
+        # `output_hash` absent is not a pass. An envelope with no digest to check is unverifiable,
+        # and reporting it as untampered would restore the hole through the back door.
+        declared_output_hash = env.get("output_hash")
+        if "result" in env and declared_output_hash:
+            output_hash_matches = (sha256_hex(env.get("result")) == declared_output_hash)
+        else:
+            output_hash_matches = False if declared_output_hash else None
+        content_intact = output_hash_matches is not False
         sig_valid = Signer.verify(receipt.get("manifest_sha256", ""),
                                   receipt.get("signature", ""),
                                   receipt.get("public_key", ""))
@@ -184,7 +200,7 @@ class ReceiptVerifyNode(Node):
         key_matches_expected = (presented_key == expected) if expected else None
         attributed = key_matches_expected if expected else signed_by_this_service
 
-        if not (manifest_matches and sig_valid):
+        if not (manifest_matches and sig_valid and content_intact):
             verdict = "INVALID_OR_TAMPERED"
         elif attributed is False:
             # Cryptographically sound and issued by someone else — the most dangerous case, because
@@ -199,8 +215,11 @@ class ReceiptVerifyNode(Node):
             "receipt_present": True,
             "manifest_matches": manifest_matches,
             "signature_valid": sig_valid,
-            # Kept as signature+manifest integrity, which is what the field has always meant.
-            "receipt_valid": manifest_matches and sig_valid,
+            # Recomputed from the result in this envelope, not read back from it. True means the
+            # content you are holding is the content that was signed; False means it was edited
+            # after issue; None means the envelope carried no digest to check against.
+            "output_hash_matches": output_hash_matches,
+            "receipt_valid": bool(manifest_matches and sig_valid and content_intact),
             "public_key": receipt.get("public_key"),
             "expected_public_key": expected or None,
             "key_matches_expected": key_matches_expected,
@@ -208,9 +227,11 @@ class ReceiptVerifyNode(Node):
             "attributed": attributed,
             "verification_level": level,
             "verdict": verdict,
-            "note": "A valid signature proves integrity, not origin. Compare public_key against "
-                    "/.well-known/episteme-signing-key (or pass expected_public_key) to establish "
-                    "who issued the receipt.",
+            "note": "The result in this envelope is re-hashed and compared against the signed "
+                    "output_hash, so an edited deliverable fails even when its signature verifies. "
+                    "A valid signature still proves integrity, not origin: compare public_key "
+                    "against /.well-known/episteme-signing-key (or pass expected_public_key) to "
+                    "establish who issued the receipt.",
         }
 
     def validate(self, result, ctx):

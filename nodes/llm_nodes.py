@@ -19,18 +19,26 @@ _MODEL_UNAVAILABLE = ("balance_insufficient", "insufficient", "model_not_found",
                       "unavailable", "unsupported model", "quota", "not available on the", "api format")
 
 
-def _chat(client, messages: list[dict], **kw) -> tuple[str, str]:
+def _chat(client, messages: list[dict], *, skip: tuple[str, ...] = (), **kw) -> tuple[str, str]:
     """Call the router, walking the configured model chain when a model itself is unusable.
 
     Returns (content, model_that_answered) so a receipt can name the model that ACTUALLY ran rather
     than the one that was configured — an LLM-backed result attributed to a model that never executed
     would be a false provenance claim on a signed artifact.
 
+    `skip` excludes models already known to have answered badly. The chain previously restarted from
+    the top on every call and advanced only when a model *threw*, so a model that returned prose
+    where JSON was asked for was re-asked the identical question and answered the same way. Measured:
+    retrying without this left one call in five still failing. Moving on to the next model is what
+    makes the second attempt different from the first.
+
     Raises NodeError(ENGINE_FAILED) only when every model in the chain has been tried.
     """
     s = get_settings()
     last = ""
     for model in s.llm_model_chain:
+        if model in skip:
+            continue
         try:
             resp = client.chat.completions.create(model=model, messages=messages, **kw)
             return (resp.choices[0].message.content or ""), model
@@ -95,6 +103,34 @@ class DocumentExtractJsonNode(Node):
         content = content or "{}"
 
         extracted, parsed_ok = _coerce_json(content)
+
+        # Retry once when the response cannot be parsed.
+        #
+        # The retry above only fires when the *request* throws — a router rejecting response_format.
+        # A model that answers with prose instead of JSON never reached it, so a single unparseable
+        # reply ended the call. Measured: this endpoint returned a signed result for one request and
+        # ENGINE_FAILED for the byte-identical request later, because the failure is the model's
+        # formatting on the day. The caller had already paid both times.
+        #
+        # One retry, with the failure quoted back so the model has something to correct, and
+        # `_chat` advancing through its model chain. Still fails closed if the second attempt is also
+        # unparseable — an answer we could not read must never be signed as though we had.
+        tried: list[str] = []
+        while not parsed_ok and len(tried) < 2:
+            tried.append(used_model)
+            try:
+                retry_msgs = msgs + [
+                    {"role": "assistant", "content": content[:2000]},
+                    {"role": "user", "content": "That response could not be parsed as JSON. Reply "
+                                                "with the JSON object alone: no prose, no code "
+                                                "fence, no reasoning. Start with { and end with }."},
+                ]
+                content, used_model = _chat(client, retry_msgs, temperature=0,
+                                            skip=tuple(tried))
+                extracted, parsed_ok = _coerce_json(content or "")
+            except Exception:                                        # noqa: BLE001
+                break                                                # keep the original failure
+
         if not parsed_ok:
             # Fail closed. Previously this returned a {"_raw":..., "_parse_error":True} sentinel —
             # which is itself a dict, so `isinstance(extracted, (dict, list))` was True and the
@@ -103,7 +139,10 @@ class DocumentExtractJsonNode(Node):
             # could do, so an unparseable model response is now an error, not a paid deliverable.
             raise NodeError(
                 ErrorCode.ENGINE_FAILED,
-                "model did not return parseable JSON (retried at temperature 0)",
+                "the model did not return parseable JSON across up to three attempts at temperature "
+                "0, each on a different model in the chain and quoting the previous failure back "
+                "for correction. Nothing was "
+                "signed, because an answer we could not read must not be certified as one we could.",
             )
 
         requested_type = None

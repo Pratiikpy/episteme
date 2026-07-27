@@ -21,13 +21,18 @@ REGISTRY="epistemeacr5675"
 IMAGE="${REGISTRY}.azurecr.io/episteme:${TAG}"
 APP="episteme"
 RG="episteme-ci"
-AZ="${AZ:-/c/Program Files/Microsoft SDKs/Azure/CLI2/wbin/az.cmd}"
+# Invoked through the CLI's own interpreter rather than the az.cmd shim. The shim re-enters
+# cmd.exe, which re-parses its own quoted path and chokes on the space in "Program Files" — it
+# failed with `'C:\Program' is not recognized` mid-deploy. The module entry point takes the same
+# arguments and does not go through cmd at all.
+AZPY="${AZPY:-/c/Program Files/Microsoft SDKs/Azure/CLI2/python.exe}"
+az() { "$AZPY" -m azure.cli "$@"; }
 
 echo "==> tests must pass before anything is built"
 python -m pytest -q -p no:warnings
 
 echo "==> recording the revision currently serving, so there is something to go back to"
-PREVIOUS="$("$AZ" containerapp revision list --name "$APP" --resource-group "$RG" \
+PREVIOUS="$(az containerapp revision list --name "$APP" --resource-group "$RG" \
   --query "[?properties.trafficWeight>\`0\`].name | [0]" -o tsv)"
 echo "    currently serving: ${PREVIOUS:-none}"
 
@@ -35,32 +40,32 @@ echo "==> build"
 docker build -q -t "$IMAGE" .
 
 echo "==> login and push"
-"$AZ" acr login --name "$REGISTRY" >/dev/null
+az acr login --name "$REGISTRY" >/dev/null
 docker push -q "$IMAGE"
 
 # The check that was missing. A push can fail for reasons that do not stop the script — an expired
 # token being the one that actually happened — so the registry is asked directly rather than trusted.
 echo "==> confirming ${TAG} is really in the registry"
-if ! "$AZ" acr repository show-tags --name "$REGISTRY" --repository episteme -o tsv | grep -qx "$TAG"; then
+if ! az acr repository show-tags --name "$REGISTRY" --repository episteme -o tsv | grep -qx "$TAG"; then
   echo "REFUSING TO DEPLOY: ${TAG} is not in the registry. Nothing was changed." >&2
   exit 1
 fi
 
 echo "==> update"
-"$AZ" containerapp update --name "$APP" --resource-group "$RG" --image "$IMAGE" \
+az containerapp update --name "$APP" --resource-group "$RG" --image "$IMAGE" \
   --query "properties.latestRevisionName" -o tsv
 
 echo "==> waiting for the new revision to report healthy"
 for _ in $(seq 1 30); do
   sleep 6
-  STATE="$("$AZ" containerapp revision list --name "$APP" --resource-group "$RG" \
+  STATE="$(az containerapp revision list --name "$APP" --resource-group "$RG" \
     --query "[?properties.trafficWeight>\`0\`].properties.healthState | [0]" -o tsv || true)"
   [ "$STATE" = "Healthy" ] && { echo "    healthy"; break; }
 done
 
 if [ "${STATE:-}" != "Healthy" ]; then
   echo "NEW REVISION IS ${STATE:-unknown} — rolling traffic back to ${PREVIOUS}" >&2
-  [ -n "${PREVIOUS:-}" ] && "$AZ" containerapp ingress traffic set --name "$APP" --resource-group "$RG" \
+  [ -n "${PREVIOUS:-}" ] && az containerapp ingress traffic set --name "$APP" --resource-group "$RG" \
     --revision-weight "${PREVIOUS}=100" >/dev/null
   exit 1
 fi

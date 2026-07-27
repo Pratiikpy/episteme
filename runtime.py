@@ -44,6 +44,45 @@ def canonical_json(obj) -> bytes:
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str).encode("utf-8")
 
 
+def _warn_unread_input(ctx, node, supplied) -> None:
+    """Say so when a field in the request is not one this node reads.
+
+    An unrecognised field is dropped and the node's declared default used instead, silently. Measured
+    on the live service: `text.summarize` asked for `max_words: 15` returned an 11-word summary, and
+    the same request with `max_wrds` returned 21 — the caller set a cap, was ignored, and went 40%
+    over it. On a node whose whole job is to fit a budget, that is the answer to a different question.
+
+    A warning rather than a refusal: rejecting an unexpected field would break any client that sends
+    one today, which is too high a price for catching a typo. Warnings travel in the envelope and are
+    covered by the signature, so the notice cannot be separated from the answer it qualifies.
+
+    Silence when the node publishes no schema — inventing an accepted-field set we cannot derive
+    would flag correct calls, and a checker that cries wolf gets ignored.
+    """
+    import difflib
+
+    try:
+        import schemas as _schemas
+        schema = _schemas.schema_for(node) or {}
+    except Exception:                                                # noqa: BLE001
+        return
+    accepted = set((schema.get("properties") or {}).keys())
+    if not accepted or not isinstance(supplied, dict):
+        return
+    unknown = sorted(k for k in supplied if k not in accepted)
+    if not unknown:
+        return
+    hints = []
+    for key in unknown:
+        near = difflib.get_close_matches(key, sorted(accepted), n=1, cutoff=0.7)
+        hints.append(f"{key!r}" + (f" (did you mean {near[0]!r}?)" if near else ""))
+    ctx.warn(
+        "Ignored, because this service does not read "
+        + ("them: " if len(unknown) > 1 else "it: ") + ", ".join(hints)
+        + ". The default was used instead, so this answer may not be the one you intended. "
+          "Accepted fields: " + ", ".join(sorted(accepted)) + ".")
+
+
 def sha256_hex(data) -> str:
     if isinstance(data, str):
         data = data.encode("utf-8")
@@ -295,6 +334,7 @@ class Runtime:
                               ErrorCode.INVALID_INPUT, f"unknown endpoint '{request.endpoint}'", started)
 
         ctx = NodeContext(request, self.settings, job_id)
+        _warn_unread_input(ctx, node, request.input)
         input_hashes = [sha256_hex(request.input)]
         params_hash = sha256_hex(request.options)
 

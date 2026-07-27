@@ -70,6 +70,17 @@ class TextStatsNode(Node):
             "lines": text.count("\n") + (1 if text else 0),
             "avg_word_length": round(sum(len(w) for w in words) / len(words), 3) if words else 0,
             "reading_time_min": round(len(words) / 200, 3),
+            # Counting rules, because a buyer comparing this against their own tool will otherwise
+            # see a discrepancy and have no way to tell which of the two is wrong. Splitting on
+            # whitespace gives a *lower* number than this: `\b\w+\b` counts "layer-2" and
+            # "zero-knowledge" as two words each, which is what most word counters do — but it is a
+            # choice, not a fact, so it is stated rather than left to be inferred.
+            "counting": {
+                "words": r"regex \b\w+\b — hyphenated compounds count as two, "
+                         r"whitespace splitting would give fewer",
+                "reading_time_min": "words / 200 words per minute",
+                "chars": "characters including whitespace",
+            },
         }
 
     def validate(self, result, ctx):

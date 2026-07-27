@@ -167,8 +167,16 @@ class DataStatsNode(Node):
                     pass
             if len(vals) >= 1:
                 a = np.array(vals, dtype=float)
-                cols[k] = {"count": len(vals), "min": float(a.min()), "max": float(a.max()),
+                # `sum` is the aggregate most often wanted from a numeric column and was the one
+                # missing. A caller could recover it as mean × count, but making someone multiply
+                # two rounded figures to get a total this node already holds exactly is a worse
+                # answer than giving them the total. `std` is the population standard deviation
+                # (numpy's default ddof=0), stated here because the sample version differs and a
+                # buyer reconciling against their own tool needs to know which one they were sold.
+                cols[k] = {"count": len(vals), "sum": round(float(a.sum()), 6),
+                           "min": float(a.min()), "max": float(a.max()),
                            "mean": round(float(a.mean()), 6), "std": round(float(a.std()), 6),
+                           "std_kind": "population (ddof=0)",
                            "median": round(float(np.median(a)), 6)}
         return {"row_count": len(rows), "numeric_columns": list(cols.keys()), "stats": cols}
 

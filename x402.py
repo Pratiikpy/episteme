@@ -34,8 +34,17 @@ def fee_to_min_units(fee: str | float, decimals: int) -> str:
     return str(int(q.quantize(Decimal(1), rounding=ROUND_DOWN)))
 
 
-def build_challenge(endpoint: str, fee_usdt: str, settings: Settings, description: str) -> tuple[str, dict]:
-    """Return (base64_header_value, challenge_dict) for a paid endpoint."""
+def build_challenge(endpoint: str, fee_usdt: str, settings: Settings, description: str,
+                    input_schema: dict | None = None) -> tuple[str, dict]:
+    """Return (base64_header_value, challenge_dict) for a paid endpoint.
+
+    ``input_schema`` is what stops a caller paying for nothing. A buying agent reads the challenge to
+    work out how to invoke the service; with only prose to go on it sends an empty body, pays, and
+    receives no work product. That is not hypothetical — it is exactly what a paying customer hit,
+    and several nodes here take their input through a helper whose parameter names appear nowhere in
+    the endpoint name, the price or the description. Publishing the contract *before* the money moves
+    is the difference between a service an agent can use and one it can only guess at.
+    """
     nonce = uuid.uuid4().hex
     amount = fee_to_min_units(fee_usdt, settings.x402_asset_decimals)
     resource_url = f"{settings.public_base_url.rstrip('/')}/a2mcp/{endpoint}"
@@ -45,6 +54,7 @@ def build_challenge(endpoint: str, fee_usdt: str, settings: Settings, descriptio
             "url": resource_url,
             "description": description,
             "mimeType": "application/json",
+            **({"inputSchema": input_schema} if input_schema else {}),
         },
         "accepts": [
             {

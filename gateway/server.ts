@@ -39,7 +39,8 @@ const OKX_PAY_ENABLED = !!(
  *    python scripts/export_routes.py  ->  gateway/routes.json
  *  Keys carry NO HTTP-method prefix on purpose (spaceless key = verb "*"), so OKX's method-agnostic
  *  bare-GET probe receives the standard 402 challenge instead of falling through to 405. */
-type RouteSpec = { price: string; maxTimeoutSeconds: number; description: string; mimeType: string };
+type RouteSpec = { price: string; maxTimeoutSeconds: number; description: string; mimeType: string;
+                   requiredAnyOf?: string[] };
 const RAW: Record<string, RouteSpec> = JSON.parse(
   readFileSync(new URL("./routes.json", import.meta.url), "utf-8")
 );
@@ -258,7 +259,61 @@ app.use("*", async (c, next) => {
   }
 });
 
+/** Does this body carry at least one field the endpoint can actually work from?
+ *
+ *  `requiredAnyOf` is the union of the node's `required` and its `anyOf` alternatives, so a node
+ *  accepting either `text` or `content_b64` is satisfied by either. An empty list means the schema
+ *  did not say, and the route is left alone — refusing a valid call would be worse than the bug. */
+function hasUsableInput(spec: RouteSpec | undefined, body: unknown): boolean {
+  const keys = spec?.requiredAnyOf;
+  if (!keys || keys.length === 0) return true;
+  if (!body || typeof body !== "object") return false;
+  return keys.some((k) => {
+    const v = (body as Record<string, unknown>)[k];
+    return typeof v === "string" ? v.trim().length > 0 : v !== undefined && v !== null;
+  });
+}
+
 if (OKX_PAY_ENABLED) {
+  /** Never settle a payment for a request that cannot produce a result.
+   *
+   *  Settlement happens in this gateway, before the Python runtime is reached, so a caller who pays
+   *  and sends nothing is already charged by the time anything downstream can notice. They end up
+   *  with a fee and no artifact — the complaint most likely to cost a customer permanently.
+   *
+   *  Instead of hand-rolling a 402 that might disagree with the SDK's, the payment headers are
+   *  stripped so the paywall treats it as an ordinary unpaid request and emits its own canonical
+   *  challenge — the one now carrying `Send: {…}`. Nothing settles, the money stays put, and the
+   *  reply says exactly what was missing.
+   *
+   *  Narrow by construction: only a priced route, only when payment is presented, only when the
+   *  schema stated what it needs, and any failure falls through untouched. */
+  app.use("*", async (c, next) => {
+    try {
+      const pathname = new URL(c.req.url).pathname;
+      const spec = (RAW as Record<string, RouteSpec>)[pathname];
+      if (!spec || !spec.requiredAnyOf?.length) return next();
+      if (!(c.req.header("PAYMENT-SIGNATURE") || c.req.header("X-PAYMENT"))) return next();
+
+      const raw = await c.req.raw.clone().text();
+      let parsed: unknown = null;
+      try { parsed = raw ? JSON.parse(raw) : null; } catch { parsed = null; }
+      if (hasUsableInput(spec, parsed)) return next();
+
+      const headers = new Headers(c.req.raw.headers);
+      headers.delete("PAYMENT-SIGNATURE");
+      headers.delete("X-PAYMENT");
+      headers.set("x-episteme-refused-no-input", "1");
+      const method = c.req.raw.method;
+      c.req.raw = new Request(c.req.url, {
+        method,
+        headers,
+        body: method === "GET" || method === "HEAD" ? undefined : raw,
+      });
+    } catch { /* fail open: the request proceeds exactly as it does today */ }
+    return next();
+  });
+
   app.use("*", async (c, next) => {
     // Behind Caddy the request arrives as http (TLS terminated at the edge). Rewrite to https when the
     // edge saw https BEFORE the payment middleware reads the URL, so the challenge's resource.url is

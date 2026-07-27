@@ -2,289 +2,481 @@
   "/a2mcp/file.inspect": {
     "price": "$0.001",
     "maxTimeoutSeconds": 300,
-    "description": "Detects file type, size and content hashes for any agent handling untrusted files. Provide: 1. file content (base64) or text.",
-    "mimeType": "application/json"
+    "description": "Detects file type, size and content hashes for any agent handling untrusted files. Provide: 1. file content (base64) or text. Send: {\"text\":\"<text>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "text",
+      "content_b64"
+    ]
   },
   "/a2mcp/hash.compute": {
     "price": "$0.001",
     "maxTimeoutSeconds": 300,
-    "description": "Computes cryptographic digests of content for integrity and deduplication. Provide: 1. content (base64 or text) 2. algorithms.",
-    "mimeType": "application/json"
+    "description": "Computes cryptographic digests of content for integrity and deduplication. Provide: 1. content (base64 or text) 2. algorithms. Send: {\"text\":\"<text>\",\"algos\":\"<algos>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "algos",
+      "text",
+      "content_b64"
+    ]
   },
   "/a2mcp/artifact.verify": {
     "price": "$0.001",
     "maxTimeoutSeconds": 300,
-    "description": "Verifies content against an expected hash and returns a match verdict. Provide: 1. content (base64) 2. expected sha256.",
-    "mimeType": "application/json"
+    "description": "Verifies content against an expected hash and returns a match verdict. Provide: 1. content (base64) 2. expected sha256. Send: {\"text\":\"<text>\",\"expected_sha256\":\"<expected_sha256>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "expected_sha256",
+      "text",
+      "content_b64"
+    ]
   },
   "/a2mcp/text.diff": {
     "price": "$0.001",
     "maxTimeoutSeconds": 300,
-    "description": "Produces a unified diff and similarity score between two texts. Provide: 1. text a 2. text b.",
-    "mimeType": "application/json"
+    "description": "Produces a unified diff and similarity score between two texts. Provide: 1. text a 2. text b. Send: {\"a\":\"<a>\",\"b\":\"<b>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "a",
+      "b"
+    ]
   },
   "/a2mcp/unit.convert": {
     "price": "$0.002",
     "maxTimeoutSeconds": 300,
-    "description": "Converts length, mass, time, data and temperature units deterministically. Provide: 1. value 2. from unit 3. to unit.",
-    "mimeType": "application/json"
+    "description": "Converts length, mass, time, data and temperature units deterministically. Provide: 1. value 2. from unit 3. to unit. Send: {\"value\":\"<value>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "value"
+    ]
   },
   "/a2mcp/csv.profile": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Profiles a CSV dataset with types, null counts, statistics and quality alerts. Provide: 1. csv content.",
-    "mimeType": "application/json"
+    "description": "Profiles a CSV dataset with types, null counts, statistics and quality alerts. Provide: 1. csv content. Send: {\"csv\":\"<csv>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "csv",
+      "text",
+      "content_b64"
+    ]
   },
   "/a2mcp/data.query_sql": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Runs a read-only SQL query over a CSV dataset and returns rows. Provide: 1. csv content 2. sql select.",
-    "mimeType": "application/json"
+    "description": "Runs a read-only SQL query over a CSV dataset and returns rows. Provide: 1. csv content 2. sql select. Send: {\"csv\":\"<csv>\",\"sql\":\"<sql>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "sql",
+      "csv",
+      "text",
+      "content_b64"
+    ]
   },
   "/a2mcp/data.diff": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Compares two CSV datasets and reports added, removed and schema changes. Provide: 1. csv a 2. csv b.",
-    "mimeType": "application/json"
+    "description": "Compares two CSV datasets and reports added, removed and schema changes. Provide: 1. csv a 2. csv b. Send: {\"a\":\"<a>\",\"b\":\"<b>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "a",
+      "b"
+    ]
   },
   "/a2mcp/url.inspect": {
     "price": "$0.001",
     "maxTimeoutSeconds": 300,
-    "description": "Resolves a link and reports its final address, response code, content type, size and redirect count, without downloading the body. Provide: 1. url.",
-    "mimeType": "application/json"
+    "description": "Resolves a link and reports its final address, response code, content type, size and redirect count, without downloading the body. Provide: 1. url. Send: {\"url\":\"<url>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": []
   },
   "/a2mcp/url.to_markdown": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Extracts the main content of a web page as clean markdown for agents. Provide: 1. url or html.",
-    "mimeType": "application/json"
+    "description": "Extracts the main content of a web page as clean markdown for agents. Provide: 1. url or html. Send: {\"html\":\"<html>\",\"base_url\":\"<base_url>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "html",
+      "url"
+    ]
   },
   "/a2mcp/page.links": {
     "price": "$0.005",
     "maxTimeoutSeconds": 300,
-    "description": "Extracts and resolves all hyperlinks and anchor text from a web page. Provide: 1. url or html.",
-    "mimeType": "application/json"
+    "description": "Extracts and resolves all hyperlinks and anchor text from a web page. Provide: 1. url or html. Send: {\"html\":\"<html>\",\"base_url\":\"<base_url>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "html",
+      "url"
+    ]
   },
   "/a2mcp/page.extract": {
     "price": "$0.02",
     "maxTimeoutSeconds": 300,
-    "description": "Extracts structured fields from a web page using caller CSS selectors. Provide: 1. url or html 2. selectors.",
-    "mimeType": "application/json"
+    "description": "Extracts structured fields from a web page using caller CSS selectors. Provide: 1. url or html 2. selectors. Send: {\"html\":\"<html>\",\"selectors\":\"<selectors>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "selectors",
+      "html",
+      "url"
+    ]
   },
   "/a2mcp/document.to_markdown": {
     "price": "$0.02",
     "maxTimeoutSeconds": 300,
-    "description": "Converts PDF or text documents into clean markdown for downstream agents. Provide: 1. document content (base64) or text.",
-    "mimeType": "application/json"
+    "description": "Converts PDF or text documents into clean markdown for downstream agents. Provide: 1. document content (base64) or text. Send: {\"text\":\"<text>\",\"name\":\"<name>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "text",
+      "content_b64"
+    ]
   },
   "/a2mcp/document.chunk": {
     "price": "$0.005",
     "maxTimeoutSeconds": 300,
-    "description": "Splits a document into overlapping, retrieval-ready chunks for grounded question answering. Provide: 1. text 2. chunk size 3. overlap.",
-    "mimeType": "application/json"
+    "description": "Splits a document into overlapping, retrieval-ready chunks for grounded question answering. Provide: 1. text 2. chunk size 3. overlap. Send: {\"text\":\"<text>\",\"chunk_size\":\"<chunk_size>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": []
   },
   "/a2mcp/openapi.inspect": {
     "price": "$0.002",
     "maxTimeoutSeconds": 300,
-    "description": "Inventories operations, paths and security schemes from an OpenAPI specification. Provide: 1. openapi spec (JSON).",
-    "mimeType": "application/json"
+    "description": "Inventories operations, paths and security schemes from an OpenAPI specification. Provide: 1. openapi spec (JSON). Send: {\"spec\":\"<spec>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "spec"
+    ]
   },
   "/a2mcp/data.transform_json": {
     "price": "$0.005",
     "maxTimeoutSeconds": 300,
-    "description": "Applies deterministic transforms such as pick, select, flatten and keys to JSON data. Provide: 1. data (JSON) 2. operation.",
-    "mimeType": "application/json"
+    "description": "Applies deterministic transforms such as pick, select, flatten and keys to JSON data. Provide: 1. data (JSON) 2. operation. Send: {\"data\":\"<data>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "data"
+    ]
   },
   "/a2mcp/openapi.lint": {
     "price": "$0.005",
     "maxTimeoutSeconds": 300,
-    "description": "Lints an OpenAPI specification for missing titles, operation ids, responses and descriptions. Provide: 1. openapi spec (JSON or YAML).",
-    "mimeType": "application/json"
+    "description": "Lints an OpenAPI specification for missing titles, operation ids, responses and descriptions. Provide: 1. openapi spec (JSON or YAML). Send: {\"spec\":\"<spec>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "spec"
+    ]
   },
   "/a2mcp/openapi.diff": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Compares two OpenAPI specs and flags added, removed and breaking operations. Provide: 1. old spec 2. new spec.",
-    "mimeType": "application/json"
+    "description": "Compares two OpenAPI specs and flags added, removed and breaking operations. Provide: 1. old spec 2. new spec. Send: {\"old\":\"<old>\",\"new\":\"<new>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "old",
+      "new"
+    ]
   },
   "/a2mcp/schema.generate": {
     "price": "$0.005",
     "maxTimeoutSeconds": 300,
-    "description": "Infers a JSON Schema from an example JSON value for validation and contracts. Provide: 1. example (JSON value).",
-    "mimeType": "application/json"
+    "description": "Infers a JSON Schema from an example JSON value for validation and contracts. Provide: 1. example (JSON value). Send: {\"example\":\"<example>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "example"
+    ]
   },
   "/a2mcp/image.inspect": {
     "price": "$0.002",
     "maxTimeoutSeconds": 300,
-    "description": "Reports image format, dimensions, mode and EXIF metadata with a content hash. Provide: 1. image content (base64).",
-    "mimeType": "application/json"
+    "description": "Reports image format, dimensions, mode and EXIF metadata with a content hash. Provide: 1. image content (base64). Send: {\"content_b64\":\"<content_b64>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "content_b64"
+    ]
   },
   "/a2mcp/image.transform": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Resizes, converts, rotates or grayscales an image and returns a hashed artifact. Provide: 1. image (base64) 2. operation 3. target format.",
-    "mimeType": "application/json"
+    "description": "Resizes, converts, rotates or grayscales an image and returns a hashed artifact. Provide: 1. image (base64) 2. operation 3. target format. Send: {\"content_b64\":\"<content_b64>\",\"op\":\"<op>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "content_b64",
+      "op"
+    ]
   },
   "/a2mcp/pdf.manipulate": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Reads PDF info or extracts, rotates and strips metadata from pages into a new document. Provide: 1. pdf content (base64) 2. operation 3. pages.",
-    "mimeType": "application/json"
+    "description": "Reads PDF info or extracts, rotates and strips metadata from pages into a new document. Provide: 1. pdf content (base64) 2. operation 3. pages. Send: {\"content_b64\":\"<content_b64>\",\"op\":\"<op>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "content_b64",
+      "op"
+    ]
   },
   "/a2mcp/document.compare": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Produces a redline and change statistics between two document texts. Provide: 1. text a 2. text b.",
-    "mimeType": "application/json"
+    "description": "Produces a redline and change statistics between two document texts. Provide: 1. text a 2. text b. Send: {\"a\":\"<a>\",\"b\":\"<b>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "a",
+      "b"
+    ]
   },
   "/a2mcp/data.convert": {
     "price": "$0.005",
     "maxTimeoutSeconds": 300,
-    "description": "Converts tabular data between CSV, JSON and JSONL formats deterministically. Provide: 1. csv or json or jsonl 2. target format.",
-    "mimeType": "application/json"
+    "description": "Converts tabular data between CSV, JSON and JSONL formats deterministically. Provide: 1. csv or json or jsonl 2. target format. Send: {\"rows\":\"<rows>\",\"to\":\"<to>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "to",
+      "rows",
+      "json",
+      "jsonl",
+      "csv"
+    ]
   },
   "/a2mcp/data.validate": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Validates rows against a JSON Schema and returns per-row errors and a pass rate. Provide: 1. rows or csv 2. json schema.",
-    "mimeType": "application/json"
+    "description": "Validates rows against a JSON Schema and returns per-row errors and a pass rate. Provide: 1. rows or csv 2. json schema. Send: {\"rows\":\"<rows>\",\"schema\":\"<schema>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "schema",
+      "rows",
+      "json",
+      "jsonl",
+      "csv"
+    ]
   },
   "/a2mcp/data.stats": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Computes count, min, max, mean, standard deviation and median per numeric column. Provide: 1. rows or csv.",
-    "mimeType": "application/json"
+    "description": "Computes count, min, max, mean, standard deviation and median per numeric column. Provide: 1. rows or csv. Send: {\"rows\":\"<rows>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "rows",
+      "json",
+      "jsonl",
+      "csv"
+    ]
   },
   "/a2mcp/data.dedupe": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Finds and removes duplicate rows by key or full match and returns duplicate clusters. Provide: 1. rows or csv 2. key fields.",
-    "mimeType": "application/json"
+    "description": "Finds and removes duplicate rows by key or full match and returns duplicate clusters. Provide: 1. rows or csv 2. key fields. Send: {\"rows\":\"<rows>\",\"keys\":\"<keys>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "keys",
+      "rows",
+      "json",
+      "jsonl",
+      "csv"
+    ]
   },
   "/a2mcp/chart.spec": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Builds a valid Vega-Lite chart specification from tabular data and field mappings. Provide: 1. rows 2. x field 3. y field 4. mark.",
-    "mimeType": "application/json"
+    "description": "Builds a valid Vega-Lite chart specification from tabular data and field mappings. Provide: 1. rows 2. x field 3. y field 4. mark. Send: {\"rows\":\"<rows>\",\"x\":\"<x>\",\"y\":\"<y>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "x",
+      "y",
+      "rows",
+      "json",
+      "jsonl",
+      "csv"
+    ]
   },
   "/a2mcp/repo.map": {
     "price": "$0.02",
     "maxTimeoutSeconds": 300,
-    "description": "Maps a codebase into languages, lines of code, symbols and dependencies for agents. Provide: 1. files as a path to content map.",
-    "mimeType": "application/json"
+    "description": "Maps a codebase into languages, lines of code, symbols and dependencies for agents. Provide: 1. files as a path to content map. Send: {\"files\":\"<files>\",\"path\":\"<path>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "files",
+      "text"
+    ]
   },
   "/a2mcp/repo.lint": {
     "price": "$0.02",
     "maxTimeoutSeconds": 300,
-    "description": "Checks source files for syntax errors, long lines, tabs and unresolved markers. Provide: 1. files as a path to content map.",
-    "mimeType": "application/json"
+    "description": "Checks source files for syntax errors, long lines, tabs and unresolved markers. Provide: 1. files as a path to content map. Send: {\"files\":\"<files>\",\"path\":\"<path>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "files",
+      "text"
+    ]
   },
   "/a2mcp/repo.scan_secrets": {
     "price": "$0.02",
     "maxTimeoutSeconds": 300,
-    "description": "Scans code and text for leaked keys and tokens and returns redacted findings only. Provide: 1. files as a path to content map, or text.",
-    "mimeType": "application/json"
+    "description": "Scans code and text for leaked keys and tokens and returns redacted findings only. Provide: 1. files as a path to content map, or text. Send: {\"files\":\"<files>\",\"path\":\"<path>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "files",
+      "text"
+    ]
   },
   "/a2mcp/workflow.compose": {
     "price": "$0.05",
     "maxTimeoutSeconds": 300,
-    "description": "Chains multiple verified nodes into one artifact graph with per node signed receipts. Provide: 1. steps as an ordered list of endpoint and input.",
-    "mimeType": "application/json"
+    "description": "Chains multiple verified nodes into one artifact graph with per node signed receipts. Provide: 1. steps as an ordered list of endpoint and input. Send: {\"steps\":\"<steps>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "steps"
+    ]
   },
   "/a2mcp/sim.run": {
     "price": "$0.2",
     "maxTimeoutSeconds": 300,
-    "description": "Runs a synthetic multi-agent scenario simulation with optional counterfactual divergence. Provide: 1. topic 2. population 3. rounds 4. intervention strength.",
-    "mimeType": "application/json"
+    "description": "Runs a synthetic multi-agent scenario simulation with optional counterfactual divergence. Provide: 1. topic 2. population 3. rounds 4. intervention strength. Send: {\"topic\":\"<topic>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "topic"
+    ]
   },
   "/a2mcp/document.redact_pii": {
     "price": "$0.02",
     "maxTimeoutSeconds": 300,
-    "description": "Detects and redacts emails, phones, SSNs, cards and IPs from text for safe agent use. Provide: 1. text.",
-    "mimeType": "application/json"
+    "description": "Detects and redacts emails, phones, SSNs, cards and IPs from text for safe agent use. Provide: 1. text. Send: {\"text\":\"<text>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "text"
+    ]
   },
   "/a2mcp/email.validate": {
     "price": "$0.005",
     "maxTimeoutSeconds": 300,
-    "description": "Checks email syntax, disposable and role addresses and gives a deliverability guess. Provide: 1. email address.",
-    "mimeType": "application/json"
+    "description": "Checks email syntax, disposable and role addresses and gives a deliverability guess. Provide: 1. email address. Send: {\"email\":\"<email>\",\"check_mx\":\"<check_mx>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": []
   },
   "/a2mcp/data.join": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Joins two record sets on a shared key with inner or left semantics. Provide: 1. left rows 2. right rows 3. join key 4. how.",
-    "mimeType": "application/json"
+    "description": "Joins two record sets on a shared key with inner or left semantics. Provide: 1. left rows 2. right rows 3. join key 4. how. Send: {\"left\":\"<left>\",\"right\":\"<right>\",\"on\":\"<on>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "left",
+      "right",
+      "on"
+    ]
   },
   "/a2mcp/data.clean": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Trims, collapses whitespace, lowercases and drops empty fields with a change log. Provide: 1. rows 2. operations.",
-    "mimeType": "application/json"
+    "description": "Trims, collapses whitespace, lowercases and drops empty fields with a change log. Provide: 1. rows 2. operations. Send: {\"rows\":\"<rows>\",\"ops\":\"<ops>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "rows",
+      "ops"
+    ]
   },
   "/a2mcp/object.diff": {
     "price": "$0.005",
     "maxTimeoutSeconds": 300,
-    "description": "Computes added, removed and changed paths between two JSON values. Provide: 1. object a 2. object b.",
-    "mimeType": "application/json"
+    "description": "Computes added, removed and changed paths between two JSON values. Provide: 1. object a 2. object b. Send: {\"a\":\"<a>\",\"b\":\"<b>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "a",
+      "b"
+    ]
   },
   "/a2mcp/site.map": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Extracts and de-duplicates URLs from a sitemap or web page for crawl planning. Provide: 1. sitemap xml or html.",
-    "mimeType": "application/json"
+    "description": "Extracts and de-duplicates URLs from a sitemap or web page for crawl planning. Provide: 1. sitemap xml or html. Send: {\"sitemap\":\"<sitemap>\",\"html\":\"<html>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "sitemap",
+      "html"
+    ]
   },
   "/a2mcp/api.to_mcp": {
     "price": "$0.02",
     "maxTimeoutSeconds": 300,
-    "description": "Generates typed MCP tool definitions from an OpenAPI specification. Provide: 1. openapi spec.",
-    "mimeType": "application/json"
+    "description": "Generates typed MCP tool definitions from an OpenAPI specification. Provide: 1. openapi spec. Send: {\"spec\":\"<spec>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "spec"
+    ]
   },
   "/a2mcp/mcp.validate": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Validates an MCP tools list for names, descriptions and input schemas. Provide: 1. tools list.",
-    "mimeType": "application/json"
+    "description": "Validates an MCP tools list for names, descriptions and input schemas. Provide: 1. tools list. Send: {\"tools\":\"<tools>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "tools"
+    ]
   },
   "/a2mcp/text.stats": {
     "price": "$0.001",
     "maxTimeoutSeconds": 300,
-    "description": "Counts characters, words, sentences and lines and estimates reading time. Provide: 1. text.",
-    "mimeType": "application/json"
+    "description": "Counts characters, words, sentences and lines and estimates reading time. Provide: 1. text. Send: {\"text\":\"<text>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "text"
+    ]
   },
   "/a2mcp/csv.to_table": {
     "price": "$0.005",
     "maxTimeoutSeconds": 300,
-    "description": "Renders a CSV dataset as a clean Markdown or grid table for reports and agents. Provide: 1. csv 2. table format.",
-    "mimeType": "application/json"
+    "description": "Renders a CSV dataset as a clean Markdown or grid table for reports and agents. Provide: 1. csv 2. table format. Send: {\"csv\":\"<csv>\",\"format\":\"<format>\",\"numparse\":\"<numparse>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "csv",
+      "text",
+      "content_b64"
+    ]
   },
   "/a2mcp/receipt.verify": {
     "price": "$0.001",
     "maxTimeoutSeconds": 300,
-    "description": "Independently verifies an Episteme signed receipt and its manifest for tamper detection. Provide: 1. envelope object.",
-    "mimeType": "application/json"
+    "description": "Independently verifies an Episteme signed receipt and its manifest for tamper detection. Provide: 1. envelope object. Send: {\"envelope\":\"<envelope>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "envelope"
+    ]
   },
   "/a2mcp/data.pivot": {
     "price": "$0.01",
     "maxTimeoutSeconds": 300,
-    "description": "Groups rows by fields and aggregates with count, sum, average, min and max. Provide: 1. rows 2. group by fields 3. aggregations.",
-    "mimeType": "application/json"
+    "description": "Groups rows by fields and aggregates with count, sum, average, min and max. Provide: 1. rows 2. group by fields 3. aggregations. Send: {\"rows\":\"<rows>\",\"group_by\":\"<group_by>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "rows",
+      "group_by"
+    ]
   },
   "/a2mcp/robots.check": {
     "price": "$0.005",
     "maxTimeoutSeconds": 300,
-    "description": "Parses a robots.txt and decides whether a path is crawlable for a user agent. Provide: 1. robots.txt content 2. path 3. user agent.",
-    "mimeType": "application/json"
+    "description": "Parses a robots.txt and decides whether a path is crawlable for a user agent. Provide: 1. robots.txt content 2. path 3. user agent. Send: {\"url\":\"<url>\",\"robots\":\"<robots>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "robots",
+      "url",
+      "path"
+    ]
   },
   "/a2mcp/document.extract_json": {
     "price": "$0.05",
     "maxTimeoutSeconds": 300,
-    "description": "Extracts caller-defined structured fields from a document as validated JSON. Provide: 1. document text 2. field schema.",
-    "mimeType": "application/json"
+    "description": "Extracts caller-defined structured fields from a document as validated JSON. Provide: 1. document text 2. field schema. Send: {\"text\":\"<text>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "text"
+    ]
   },
   "/a2mcp/text.summarize": {
     "price": "$0.03",
     "maxTimeoutSeconds": 300,
-    "description": "Summarizes long text into a concise summary for downstream agents. Provide: 1. text 2. maximum words.",
-    "mimeType": "application/json"
+    "description": "Summarizes long text into a concise summary for downstream agents. Provide: 1. text 2. maximum words. Send: {\"text\":\"<text>\"}",
+    "mimeType": "application/json",
+    "requiredAnyOf": [
+      "text"
+    ]
   }
 }

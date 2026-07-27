@@ -195,18 +195,48 @@ class UnitConvertNode(Node):
         "kib": ("data", 1024.0), "mib": ("data", 1024.0 ** 2), "gib": ("data", 1024.0 ** 3),
     }
 
+    # People write "celsius" and "meters", not "c" and "m". Rejecting the spelled-out name of a unit
+    # this node already converts is a refusal with nothing behind it — the caller pays, is told the
+    # unit is unknown, and has no way to discover that the symbol would have worked. Plurals are
+    # stripped before lookup, so "kilometers" and "pounds" resolve without a table entry each.
+    _ALIASES = {
+        "celsius": "c", "centigrade": "c", "fahrenheit": "f", "kelvin": "k",
+        "degc": "c", "degf": "f", "°c": "c", "°f": "f",
+        "meter": "m", "metre": "m", "kilometer": "km", "kilometre": "km",
+        "centimeter": "cm", "centimetre": "cm", "millimeter": "mm", "millimetre": "mm",
+        "mile": "mi", "foot": "ft", "feet": "ft", "inch": "in", "inche": "in",
+        "gram": "g", "gramme": "g", "kilogram": "kg", "kilo": "kg", "milligram": "mg",
+        "pound": "lb", "lbs": "lb", "ounce": "oz",
+        "second": "s", "sec": "s", "minute": "min", "hour": "h", "hr": "h", "days": "day",
+        "byte": "b", "kilobyte": "kb", "megabyte": "mb", "gigabyte": "gb",
+        "kibibyte": "kib", "mebibyte": "mib", "gibibyte": "gib",
+    }
+
+    @classmethod
+    def _canonical(cls, unit: str) -> str:
+        u = unit.strip().lower().rstrip(".")
+        if u in cls._ALIASES or u in cls._FACTORS:
+            return cls._ALIASES.get(u, u)
+        singular = u[:-1] if u.endswith("s") else u
+        return cls._ALIASES.get(singular, singular)
+
     def run(self, ctx: NodeContext) -> dict:
         try:
             value = float(ctx.input["value"])
         except (KeyError, ValueError, TypeError):
             raise NodeError(ErrorCode.INVALID_INPUT, "provide numeric 'value'")
-        src = str(ctx.input.get("from", "")).lower()
-        dst = str(ctx.input.get("to", "")).lower()
+        src = self._canonical(str(ctx.input.get("from", "")))
+        dst = self._canonical(str(ctx.input.get("to", "")))
         # temperature handled separately
         if src in {"c", "f", "k"} or dst in {"c", "f", "k"}:
             return self._temp(value, src, dst)
         if src not in self._FACTORS or dst not in self._FACTORS:
-            raise NodeError(ErrorCode.INVALID_INPUT, f"unknown unit(s): {src},{dst}")
+            unknown = [u for u in (src, dst) if u not in self._FACTORS]
+            supported = ", ".join(sorted(self._FACTORS) + ["c", "f", "k"])
+            raise NodeError(
+                ErrorCode.INVALID_INPUT,
+                f"unknown unit(s): {', '.join(unknown)}. Supported: {supported}. "
+                f"Full names and plurals are accepted, e.g. 'celsius', 'kilometers'.")
         dim_s, fs = self._FACTORS[src]
         dim_d, fd = self._FACTORS[dst]
         if dim_s != dim_d:

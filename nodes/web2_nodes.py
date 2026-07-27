@@ -5,7 +5,7 @@ from urllib.parse import urljoin, urlparse
 
 from contract import ErrorCode, ValidationCheck
 from runtime import Node, NodeContext, NodeError
-from nodes.web_nodes import _ssrf_guard
+from nodes.web_nodes import _ssrf_guard, safe_get
 
 
 def _html(ctx: NodeContext) -> tuple[str, str | None]:
@@ -16,12 +16,14 @@ def _html(ctx: NodeContext) -> tuple[str, str | None]:
     url = str(ctx.input.get("url", "")).strip()
     if not url:
         raise NodeError(ErrorCode.INVALID_INPUT, "provide 'html' or 'url'")
-    _ssrf_guard(url)
     try:
-        import httpx
-        with httpx.Client(follow_redirects=True, timeout=20) as c:
-            r = c.get(url, headers={"User-Agent": "EpistemeBot/1.0"})
+        r = safe_get(url, timeout=20, headers={"User-Agent": "EpistemeBot/1.0"})
         return r.text, str(r.url)
+    except NodeError:
+        # A policy refusal is not a network failure. Rewrapping it as FETCH_FAILED told the caller
+        # the site was unreachable when in fact we declined to go there, hiding a blocked redirect
+        # behind what reads as a transient error worth retrying.
+        raise
     except Exception as e:
         raise NodeError(ErrorCode.FETCH_FAILED, f"fetch failed: {e}")
 

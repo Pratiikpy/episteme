@@ -34,6 +34,46 @@ def _ssrf_guard(url: str) -> None:
         raise NodeError(ErrorCode.FETCH_FAILED, f"cannot resolve host '{host}'")
 
 
+MAX_REDIRECTS = 5
+
+
+def safe_get(url: str, *, timeout: float = 20.0, headers: dict | None = None):
+    """GET a URL, re-running the SSRF guard on **every** hop.
+
+    Guarding only the URL the caller handed us and then letting the HTTP client follow redirects is
+    not a guard at all: a perfectly public address that answers 302 with
+    `Location: http://169.254.169.254/latest/meta-data/iam/security-credentials/` walks straight past
+    it and we fetch the host's cloud credentials on the attacker's behalf. The first hop is the only
+    one an attacker has to make look innocent.
+
+    Verified against the live service before this existed: a redirect through a public redirector
+    reached the metadata address and failed only because that platform happened to refuse the
+    connection. That is the hosting environment's configuration, not our defence, and it is not
+    something to rely on — the same code runs on hosts where that address answers.
+
+    So redirects are followed by hand, one at a time, with the guard re-run on each new location.
+    """
+    import httpx                                                     # noqa: PLC0415
+
+    seen = []
+    current = url
+    for _ in range(MAX_REDIRECTS + 1):
+        _ssrf_guard(current)
+        seen.append(current)
+        with httpx.Client(follow_redirects=False, timeout=timeout) as c:
+            r = c.get(current, headers=headers or {})
+        if r.status_code not in (301, 302, 303, 307, 308):
+            return r
+        location = r.headers.get("location")
+        if not location:
+            return r
+        current = str(httpx.URL(current).join(location))
+        if current in seen:
+            raise NodeError(ErrorCode.FETCH_FAILED, "redirect loop")
+    raise NodeError(ErrorCode.FETCH_FAILED,
+                    f"more than {MAX_REDIRECTS} redirects starting at {url}")
+
+
 # Elements that never carry article content. Dropping them is the difference between a page's text
 # and a page's navigation: previously a Wikipedia article came back with the entire sidebar, edit
 # links and footer inlined, so the buyer paid for markdown and had to clean it themselves.
@@ -332,10 +372,13 @@ class UrlInspectNode(Node):
         url = str(ctx.input.get("url", "")).strip()
         if not url:
             raise NodeError(ErrorCode.INVALID_INPUT, "provide 'url'")
-        _ssrf_guard(url)
         try:
-            with httpx.Client(follow_redirects=True, timeout=15) as c:
-                r = c.get(url, headers={"User-Agent": "EpistemeBot/1.0"})
+            r = safe_get(url, timeout=15, headers={"User-Agent": "EpistemeBot/1.0"})
+        except NodeError:
+            # A policy refusal is not a network failure. Rewrapping it as FETCH_FAILED told the
+            # caller the site was unreachable when in fact we declined to go there, which hides a
+            # blocked redirect behind what reads as a transient error worth retrying.
+            raise
         except Exception as e:
             raise NodeError(ErrorCode.FETCH_FAILED, f"fetch failed: {e}")
         return {
@@ -363,13 +406,13 @@ class UrlToMarkdownNode(Node):
             url = str(ctx.input.get("url", "")).strip()
             if not url:
                 raise NodeError(ErrorCode.INVALID_INPUT, "provide 'html' or 'url'")
-            _ssrf_guard(url)
             try:
-                import httpx
-                with httpx.Client(follow_redirects=True, timeout=20) as c:
-                    r = c.get(url, headers={"User-Agent": "EpistemeBot/1.0"})
+                r = safe_get(url, timeout=20, headers={"User-Agent": "EpistemeBot/1.0"})
                 html = r.text
                 source = str(r.url)
+            except NodeError:
+                # A policy refusal is not a network failure — see the note above.
+                raise
             except Exception as e:
                 raise NodeError(ErrorCode.FETCH_FAILED, f"fetch failed: {e}")
         title, md, meta = _html_to_markdown(str(html))

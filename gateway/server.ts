@@ -295,21 +295,34 @@ if (OKX_PAY_ENABLED) {
       if (!spec || !spec.requiredAnyOf?.length) return next();
       if (!(c.req.header("PAYMENT-SIGNATURE") || c.req.header("X-PAYMENT"))) return next();
 
-      const raw = await c.req.raw.clone().text();
+      // Read the body ONCE and rebuild the request from it, on both paths.
+      //
+      // This used to `clone().text()` and leave the original for the proxy to read later. That works
+      // for small bodies and silently breaks above roughly 32 KB: the clone and the original share a
+      // buffer, and consuming one leaves the other unreadable, so the forward's `arrayBuffer()`
+      // threw and the caller got `502 backend_unreachable` with no explanation. It cost nothing —
+      // settlement had not completed — but a text service that dies on a 60 KB document is broken.
+      //
+      // Rebuilding from the bytes we already hold gives the proxy a fresh, fully readable body and
+      // removes the size cliff entirely.
+      const method = c.req.raw.method;
+      const raw = method === "GET" || method === "HEAD" ? "" : await c.req.text();
       let parsed: unknown = null;
       try { parsed = raw ? JSON.parse(raw) : null; } catch { parsed = null; }
-      if (hasUsableInput(spec, parsed)) return next();
 
       const headers = new Headers(c.req.raw.headers);
-      headers.delete("PAYMENT-SIGNATURE");
-      headers.delete("X-PAYMENT");
-      headers.set("x-episteme-refused-no-input", "1");
-      const method = c.req.raw.method;
+      const usable = hasUsableInput(spec, parsed);
+      if (!usable) {
+        headers.delete("PAYMENT-SIGNATURE");
+        headers.delete("X-PAYMENT");
+        headers.set("x-episteme-refused-no-input", "1");
+      }
       c.req.raw = new Request(c.req.url, {
         method,
         headers,
         body: method === "GET" || method === "HEAD" ? undefined : raw,
       });
+      if (usable) return next();
     } catch { /* fail open: the request proceeds exactly as it does today */ }
     return next();
   });

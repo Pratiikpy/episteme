@@ -361,27 +361,41 @@ def create_app(runtime: Runtime | None = None) -> FastAPI:
         #
         # Skipped only for the front gateway's already-settled hand-off (see _is_trusted_internal).
         if node.price_usdt and node.price_usdt > 0 and not _is_trusted_internal(request):
+            fee = f"{node.price_usdt:.6f}".rstrip("0").rstrip(".")
+            schema = schemas_mod.schema_for(node) if endpoint not in _INTERNAL_ONLY else None
+
+            # A call with no input is answered before the money moves, never after. Settling first
+            # and then explaining the contract takes payment for work nobody could have performed —
+            # the caller ends up with a fee on their statement and no artifact, which is the single
+            # complaint most likely to lose a customer for good. The challenge carries the schema,
+            # so this reply is also everything they need to get it right on the next attempt.
+            if no_input_supplied:
+                header_val, challenge = x402.build_challenge(
+                    endpoint, fee, settings, description=f"Episteme {endpoint}",
+                    input_schema=schema)
+                return JSONResponse(
+                    status_code=402,
+                    content={**_usage(endpoint, node),
+                             "not_charged": "no input was supplied, so nothing was billed. Send the "
+                                            "input shown above together with payment.",
+                             **challenge},
+                    headers={x402.PAYMENT_REQUIRED_HEADER: header_val})
+
             pay_hdr = request.headers.get(x402.PAYMENT_HEADER)
             if not pay_hdr:
-                fee = f"{node.price_usdt:.6f}".rstrip("0").rstrip(".")
                 header_val, challenge = x402.build_challenge(
-                    endpoint, fee, settings, description=f"Episteme {endpoint}")
+                    endpoint, fee, settings, description=f"Episteme {endpoint}",
+                    input_schema=schema)
                 return JSONResponse(status_code=402, content=challenge,
                                     headers={x402.PAYMENT_REQUIRED_HEADER: header_val})
             result = x402.verify_payment(pay_hdr, settings)
             if not result.ok:
-                fee = f"{node.price_usdt:.6f}".rstrip("0").rstrip(".")
                 header_val, challenge = x402.build_challenge(
-                    endpoint, fee, settings, description=f"Episteme {endpoint}")
+                    endpoint, fee, settings, description=f"Episteme {endpoint}",
+                    input_schema=schema)
                 return JSONResponse(status_code=402,
                                     content={"error": "payment_invalid", "detail": result.detail, **challenge},
                                     headers={x402.PAYMENT_REQUIRED_HEADER: header_val})
-            if no_input_supplied:
-                return JSONResponse(
-                    status_code=200,
-                    content=_usage(endpoint, node),
-                    headers={x402.PAYMENT_RESPONSE_HEADER: result.response_header or ""},
-                )
             env = rt.execute(ArtifactRequest(endpoint=endpoint, input=inp, options=opts))
             payload = env.model_dump(mode="json")
             _attach_guidance(payload, endpoint, node, registry, body)

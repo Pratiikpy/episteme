@@ -90,6 +90,20 @@ _CHROME_HINT = re.compile(
     r"skip-?link|screen-?reader|sr-only|visually-?hidden|toc|table-of-contents|"
     r"site-?header|site-?footer|global-?header|global-?footer)(?:$|[\s_-])"
 )
+# Elements that hold the document rather than decorate it, and can therefore never be chrome.
+#
+# Every Wikipedia page returned an empty markdown document — `char_count: 0`, `ok: true`, no warning
+# — while example.com and python.org were fine. Wikipedia puts its theme state on the root element:
+# `<html class="… vector-feature-language-in-main-menu-disabled vector-feature-toc-pinned-clientpref-1 …">`.
+# The chrome regex matched `menu` and `toc` inside those class names, so `<html>` itself was
+# classified as navigation and the entire page skipped.
+#
+# Those classes describe the page's appearance settings, not a nav block — and a chrome hint on a
+# structural element means nothing regardless, because navigation is never the root of a document.
+# Nor is this only Wikipedia: any theme that puts `menu-open` or `has-sidebar` on <html> or <body>
+# loses the whole page the same way.
+_NEVER_DROP = frozenset({"html", "head", "body", "main", "article"})
+
 _HEADINGS = {"h1": 1, "h2": 2, "h3": 3, "h4": 4, "h5": 5, "h6": 6}
 
 
@@ -129,6 +143,8 @@ class _Extract(HTMLParser):
         self._content_root = content_root
         self._root_depth = 0
         self._root_tag_depth = 0
+        # Switched off only on the salvage pass below, when the normal pass produced nothing at all.
+        self.strip_chrome = True
 
     # -- helpers ---------------------------------------------------------------------------------
     @property
@@ -170,8 +186,11 @@ class _Extract(HTMLParser):
                 self._root_tag_depth += 1
 
         ident = f"{a.get('class', '')} {a.get('id', '')} {a.get('role', '')}"
-        if tag in _DROP_TAGS or (ident.strip() and _CHROME_HINT.search(ident)) or a.get("hidden") is not None \
-                or a.get("aria-hidden") == "true":
+        if self.strip_chrome and tag not in _NEVER_DROP and (
+                tag in _DROP_TAGS
+                or (ident.strip() and _CHROME_HINT.search(ident))
+                or a.get("hidden") is not None
+                or a.get("aria-hidden") == "true"):
             self._skip_depth = 1
             self._skip_tag = tag
             self.dropped_tags[tag] = self.dropped_tags.get(tag, 0) + 1
@@ -337,13 +356,45 @@ def _html_to_markdown(html: str) -> tuple[str, str, dict]:
         if re.search(rf"<{candidate}[\s>]", html, re.I):
             root = candidate
             break
-    p = _Extract(content_root=root)
-    p.feed(html)
-    md = "".join(p.chunks)
-    md = re.sub(r"[ \t]+\n", "\n", md)
-    md = re.sub(r"\n{3,}", "\n\n", md).strip()
+    def extract(content_root: str | None, drop_chrome: bool) -> tuple[_Extract, str]:
+        e = _Extract(content_root=content_root)
+        e.strip_chrome = drop_chrome
+        e.feed(html)
+        text = "".join(e.chunks)
+        text = re.sub(r"[ \t]+\n", "\n", text)
+        return e, re.sub(r"\n{3,}", "\n\n", text).strip()
+
+    p, md = extract(root, True)
+
+    # Never hand back an empty document in silence.
+    #
+    # The `_NEVER_DROP` fix above closes the case that was found; this closes the shape of it. A page
+    # that fetched with real bytes and extracted to nothing is either a defect here or an unusual
+    # document, and the buyer has paid either way. So it is read again with the filters off, and the
+    # response says which pass produced the text they are holding. Returning `char_count: 0` with
+    # `ok: true` and no warning — what this did for every Wikipedia article — tells them nothing at
+    # all, and looks identical to a page that genuinely has no content.
+    note = None
+    # Any non-empty document, not just a large one. A byte threshold here would have meant a small
+    # page whose whole content sits inside one filtered block still returned empty and silent — the
+    # exact failure being fixed, surviving at a smaller size. The second parse costs nothing worth
+    # protecting against.
+    if not md and html.strip():
+        p2, md2 = extract(None, False)
+        if md2:
+            p, md = p2, md2
+            note = ("Nothing survived the usual extraction, so this page was read again with "
+                    "boilerplate removal off and the content region ignored. What follows is "
+                    "therefore the whole document, navigation included, rather than the article "
+                    "alone.")
+        else:
+            note = (f"This page returned {len(html)} bytes but no extractable text — most likely it "
+                    f"is rendered by JavaScript, or a wall served a shell page. Nothing was hidden "
+                    f"from you; there was nothing to convert.")
+
     meta = {
         "content_root": root,
+        **({"extraction_note": note} if note else {}),
         "links": p.links[:200],
         "link_count": len(p.links),
         "images": p.images[:100],

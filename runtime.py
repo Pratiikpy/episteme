@@ -9,7 +9,9 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import logging
 import platform
+import re
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -147,6 +149,44 @@ class Signer:
 
 
 # ----------------------------------------------------------------------------- nodes
+log = logging.getLogger("episteme.runtime")
+
+# Object reprs carry a memory address and tell a customer nothing.
+_OBJECT_REPR = re.compile(r"<[\w.]+ object at 0x[0-9a-fA-F]+>")
+# What the common Python failures actually mean for someone who sent the request.
+_FRIENDLY = {
+    "AttributeError": "the input was not the shape this service expects - check the field types "
+                      "against the example in the service description",
+    "TypeError": "a field was the wrong type - check the example in the service description",
+    "ValueError": "a value could not be parsed - check the example in the service description",
+    "KeyError": "a required field was missing",
+    "IndexError": "the input was shorter than this service needs",
+    "JSONDecodeError": "a field that must contain JSON did not parse as JSON",
+}
+
+
+def humanise_error(e: Exception, limit: int = 300) -> str:
+    """Turn an exception into something a customer can act on, without inventing a cause.
+
+    The catch-all used to return `f"{type(e).__name__}: {e}"` verbatim, so a paying caller received
+    `AttributeError: 'str' object has no attribute 'get'` — accurate, and useless to the person who
+    has to decide what to send instead. Image nodes were worse: `not an image: cannot identify image
+    file <_io.BytesIO object at 0x74f3cc339800>` handed over a memory address.
+
+    The class name is kept — it is the part that helps diagnosis and it is where a bug report starts
+    — and a plain sentence is added for the failures we recognise. Only noise is removed.
+    """
+    name = type(e).__name__
+    text = _OBJECT_REPR.sub("the data you sent", str(e) or "")
+    text = " ".join(text.split())
+    friendly = _FRIENDLY.get(name)
+    if friendly:
+        return f"{friendly}. [{name}]"
+    if not text:
+        return f"the service failed unexpectedly. [{name}]"
+    return (text[:limit] + "…" if len(text) > limit else text) + f" [{name}]"
+
+
 class EngineUnavailable(RuntimeError):
     """Raised when a required engine/library is not installed."""
 
@@ -359,8 +399,9 @@ class Runtime:
             return self._fail(request_id, job_id, node.name, ErrorCode.ENGINE_UNAVAILABLE,
                               str(e), started, input_hashes=input_hashes, warnings=ctx.warnings)
         except Exception as e:  # noqa
+            log.exception("unhandled error in %s", node.name)
             return self._fail(request_id, job_id, node.name, ErrorCode.ENGINE_FAILED,
-                              f"{type(e).__name__}: {e}", started,
+                              humanise_error(e), started,
                               input_hashes=input_hashes, warnings=ctx.warnings)
 
         output_hash = sha256_hex(result)

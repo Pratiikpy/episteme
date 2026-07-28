@@ -5,7 +5,7 @@ import base64
 import io
 
 from contract import ErrorCode, ValidationCheck
-from runtime import Node, NodeContext, NodeError
+from runtime import Node, NodeContext, NodeError, humanise_error
 
 
 def _img_bytes(inp: dict) -> bytes:
@@ -38,7 +38,8 @@ class ImageInspectNode(Node):
             im = Image.open(io.BytesIO(data))
             im.load()
         except Exception as e:
-            raise NodeError(ErrorCode.UNSUPPORTED_FORMAT, f"not an image: {e}")
+            raise NodeError(ErrorCode.UNSUPPORTED_FORMAT,
+                            f"the bytes supplied are not a readable image. {humanise_error(e)}")
         exif = {}
         try:
             raw = im.getexif()
@@ -84,7 +85,8 @@ class ImageTransformNode(Node):
             im = Image.open(io.BytesIO(data))
             im.load()
         except Exception as e:
-            raise NodeError(ErrorCode.UNSUPPORTED_FORMAT, f"not an image: {e}")
+            raise NodeError(ErrorCode.UNSUPPORTED_FORMAT,
+                            f"the bytes supplied are not a readable image. {humanise_error(e)}")
         in_w, in_h = im.width, im.height
         # `op` is declared REQUIRED in the schema, so defaulting it here was a silent lie: a caller
         # who sent {content_b64, width: 200} got a plain format-convert, their width was dropped

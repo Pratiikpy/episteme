@@ -800,3 +800,31 @@ def test_language_model_dependency_is_disclosed(runtime):
         assert "language model" in schema.get("x-ai-disclosure", "")
     # ...and must NOT appear on the deterministic ones, or it means nothing.
     assert "x-ai-backed" not in schema_for(runtime.registry.get("csv.profile"))
+
+
+def test_a_paying_caller_never_receives_a_raw_python_exception():
+    """`AttributeError: 'str' object has no attribute 'get'` is accurate and useless.
+
+    The runtime's catch-all returned `f"{type(e).__name__}: {e}"` verbatim, so a buyer who sent a
+    string where a list belonged was handed the interpreter's own words and no idea what to send
+    instead. Image nodes were worse: `not an image: cannot identify image file <_io.BytesIO object
+    at 0x74f3cc339800>` shipped a memory address to a customer.
+    """
+    import io
+
+    from runtime import humanise_error
+
+    msg = humanise_error(AttributeError("'str' object has no attribute 'get'"))
+    assert "check the field types" in msg
+    assert "'str' object" not in msg
+    assert "[AttributeError]" in msg, "the class name still helps whoever files the bug report"
+
+    # No memory address survives, wherever it appears in the text.
+    leaky = Exception(f"not an image: cannot identify image file {io.BytesIO()!r}")
+    out = humanise_error(leaky)
+    assert "0x" not in out
+    assert "BytesIO object at" not in out
+
+    # An already-readable message is passed through rather than replaced with a generic one.
+    assert "provide 'rows' (list of objects)" in humanise_error(
+        RuntimeError("provide 'rows' (list of objects)"))

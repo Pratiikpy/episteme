@@ -31,9 +31,14 @@ az() { "$AZPY" -m azure.cli "$@"; }
 echo "==> tests must pass before anything is built"
 python -m pytest -q -p no:warnings
 
+# Single-quoted, and that is not cosmetic. Written double-quoted with escaped backticks, bash inside
+# the command substitution took the `>` as a redirection: it created an empty file called
+# '`0`].name' in the repo and left PREVIOUS empty. The rollback below then had nothing to roll back
+# to — the one thing this script exists to guarantee, quietly switched off, and visible only as a
+# stray zero-byte file nobody would look at twice. Single quotes stop bash reading the JMESPath at all.
 echo "==> recording the revision currently serving, so there is something to go back to"
 PREVIOUS="$(az containerapp revision list --name "$APP" --resource-group "$RG" \
-  --query "[?properties.trafficWeight>\`0\`].name | [0]" -o tsv)"
+  --query '[?properties.trafficWeight>`0`].name | [0]' -o tsv)"
 echo "    currently serving: ${PREVIOUS:-none}"
 
 echo "==> build"
@@ -59,7 +64,7 @@ echo "==> waiting for the new revision to report healthy"
 for _ in $(seq 1 30); do
   sleep 6
   STATE="$(az containerapp revision list --name "$APP" --resource-group "$RG" \
-    --query "[?properties.trafficWeight>\`0\`].properties.healthState | [0]" -o tsv || true)"
+    --query '[?properties.trafficWeight>`0`].properties.healthState | [0]' -o tsv || true)"
   [ "$STATE" = "Healthy" ] && { echo "    healthy"; break; }
 done
 

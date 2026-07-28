@@ -140,6 +140,21 @@ class ArtifactEnvelope(BaseModel):
     replay: ReplayCapsule = Field(default_factory=ReplayCapsule)
     metrics: Metrics = Field(default_factory=Metrics)
     receipt: Receipt | None = None
+    # Where to check the receipt against, carried in every envelope.
+    #
+    # The key has always been published at this path, and a buyer holding a receipt was never told
+    # so. `Signer.verify` only proves a receipt is internally consistent with whatever key the
+    # receipt itself carries, so a forged envelope signed with an attacker's keypair verifies
+    # perfectly; comparing `receipt.public_key` against the published key out of band is the entire
+    # difference between "someone signed this" and "Episteme signed this". Twenty top-level fields
+    # and not one of them said where to look — Doxa and Horos both carry this pointer.
+    verify: str = ("Compare receipt.public_key against "
+                   "/.well-known/episteme-signing-key, then verify receipt.signature over the "
+                   "UTF-8 bytes of receipt.manifest_sha256. Rebuild manifest_sha256 yourself as "
+                   "the sha256 of the canonical JSON (sorted keys, separators (',',':'), no "
+                   "whitespace, ensure_ascii false) of "
+                   "{endpoint, input_hashes, output_hash, tool, level, job_id}, taking level from "
+                   "validation.level.")
     warnings: list[str] = Field(default_factory=list)
     error: ArtifactError | None = None
 

@@ -828,3 +828,23 @@ def test_a_paying_caller_never_receives_a_raw_python_exception():
     # An already-readable message is passed through rather than replaced with a generic one.
     assert "provide 'rows' (list of objects)" in humanise_error(
         RuntimeError("provide 'rows' (list of objects)"))
+
+
+def test_every_envelope_says_where_to_check_the_receipt():
+    """A receipt whose key nobody can pin proves only that someone, somewhere, signed something.
+
+    The key has always been published at /.well-known/episteme-signing-key, and the envelope never
+    mentioned it — twenty top-level fields and not one pointed there. `Signer.verify` proves a
+    receipt is internally consistent with whatever key it carries, so a forged envelope signed with
+    an attacker's own keypair verifies perfectly. Comparing against the published key is what makes
+    a receipt attributable, and the buyer has to be told to do it.
+    """
+    from contract import ArtifactEnvelope
+
+    env = ArtifactEnvelope(request_id="r", job_id="j", endpoint="text.stats")
+    assert env.verify, "the envelope carries no pointer to the published key"
+    assert "/.well-known/episteme-signing-key" in env.verify
+    # The instructions must name every manifest field, or following them cannot reproduce the digest.
+    for field in ("endpoint", "input_hashes", "output_hash", "tool", "level", "job_id"):
+        assert field in env.verify, f"the steps omit {field!r}"
+    assert "validation.level" in env.verify, "level is not a top-level field and must be located"
